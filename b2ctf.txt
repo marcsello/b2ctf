@@ -1,0 +1,7 @@
+"b2ctf" {
+    "base"          "sandbox"
+    "title"         "Build2CTF"
+    "maps"          "^b2ctf_"
+    "category"      "pvp"
+    "menusystem"    "1"
+}
