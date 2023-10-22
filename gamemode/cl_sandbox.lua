@@ -30,3 +30,5 @@ hook.Add("B2CTF_PhaseChanged", "CloseSandboxMenus", function(newPhase, info, sta
         RunConsoleCommand("-menu")
     end
 end)
+
+include("sh_sandbox.lua")

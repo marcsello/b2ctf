@@ -1,3 +1,4 @@
+-- Control/sync the current game phase
 if SERVER then
     util.AddNetworkString("B2CTF_PhaseUpdate")
 end
@@ -15,7 +16,7 @@ GAME_PHASE_INFO = {
         name = "Coffee break",
         buildAllowed = false, -- Spawn menu works, players have toolgun and physgun
         fightAllowed = false, -- 
-        homeSickness = false, -- Players hurt when leaving the site, also brought back on phase change
+        homeSickness = false, -- Players hurt when leaving the site, also brought back on phase change, props also break that wander around
     },
     [GAME_PHASE_BUILD] = {
         time = 120, -- 1h
@@ -42,63 +43,78 @@ GAME_PHASE_INFO = {
 
 local st = CurTime()
 Phaser = {
-    current = GAME_PHASE_PREBUILD,
+    current_phase_id = GAME_PHASE_PREBUILD,
+    next_phase_id = GAME_PHASE_BUILD,
     start_time = st,
     end_time = st + GAME_PHASE_INFO[GAME_PHASE_PREBUILD].time
 }
 
 function Phaser:CurrentPhaseID()
-    return self.current
+    return self.current_phase_id
 end
 
 function Phaser:CurrentPhaseInfo()
-    return GAME_PHASE_INFO[self.current]
+    return GAME_PHASE_INFO[self.current_phase_id]
 end
 
 function Phaser:CurrentPhaseEnd()
     return self.end_time
 end
 
-function Phaser:CurrentPhaseEnd()
+function Phaser:CurrentPhaseStart()
     return self.start_time
 end
 
 function Phaser:CurrentPhaseTimeLeft()
-    return self.end_time - self.start_time
+    local timeLeft = self.end_time - CurTime()
+    if timeLeft < 0 then
+        timeLeft = 0
+    end
+    return timeLeft
+end
+
+function Phaser:NextPhaseID()
+    return self.next_phase_id
+end
+
+function Phaser:NextPhaseInfo()
+    return GAME_PHASE_INFO[self.next_phase_id]
 end
 
 function Phaser:_think()
     if CLIENT then return end -- this should be server side only
     if self.end_time < CurTime() then
         -- advance to the next phase
-        local nextPhase = self.current + 1
-        if nextPhase > GAME_PHASE_WAR then nextPhase = GAME_PHASE_PREBUILD end
+        local nextPhaseID = self.current_phase_id + 1
+        if nextPhaseID > GAME_PHASE_WAR then nextPhaseID = GAME_PHASE_PREBUILD end
         local startTime = CurTime()
         -- update the current phase to be the next phase, sync, call hooks, etc.
-        self:Update(nextPhase, startTime, startTime + GAME_PHASE_INFO[nextPhase].time)
+        self:Update(nextPhaseID, startTime, startTime + GAME_PHASE_INFO[nextPhaseID].time)
     end
 end
 
 function Phaser:_prepareUpdateMessage()
     net.Start("B2CTF_PhaseUpdate")
-    net.WriteUInt(self.current, 3)
+    net.WriteUInt(self.current_phase_id, 3)
     net.WriteDouble(self.start_time)
     net.WriteDouble(self.end_time)
 end
 
-function Phaser:Update(newPhase, startTime, endTime)
-    local changed = self.current != newPhase
-    self.current = newPhase
+function Phaser:Update(newPhaseID, startTime, endTime)
+    local changed = self.current_phase_id != newPhaseID
+    self.current_phase_id = newPhaseID
     self.start_time = startTime
     self.end_time = endTime
+
+    self.next_phase_id = self.current_phase_id + 1
+    if self.next_phase_id > GAME_PHASE_WAR then self.next_phase_id = GAME_PHASE_PREBUILD end
+
     if SERVER then
         self:_broadcastPhase()
     end
 
     if changed then -- Update may be called just to update times, in that case we don't want to fire a phase change hook
-        local newInfo = GAME_PHASE_INFO[newPhase]
-        print("New phase: " .. newInfo.name)
-        hook.Run("B2CTF_PhaseChanged", self.current, newInfo, self.start_time, self.end_time)
+        self:_runHooks()
     end
 
 end
@@ -116,13 +132,19 @@ function Phaser:_broadcastPhase()
     net.Broadcast()
 end
 
+function Phaser:_runHooks()
+    local newInfo = GAME_PHASE_INFO[self.current_phase_id]
+    print("New phase: " .. newInfo.name)
+    hook.Run("B2CTF_PhaseChanged", self.current_phase_id, newInfo, self.start_time, self.end_time)
+end
+
 if CLIENT then -- setup listener for client only
     net.Receive( "B2CTF_PhaseUpdate", function( len, ply )
         if ( IsValid( ply ) and ply:IsPlayer() ) then return end -- disallow these messages from players
-        local newPhase = net.ReadUInt(3)
+        local newPhaseID = net.ReadUInt(3)
         local startTime = net.ReadDouble()
         local endTime = net.ReadDouble()
-        Phaser:Update(newPhase, startTime, endTime)
+        Phaser:Update(newPhaseID, startTime, endTime)
     end)
 elseif SERVER then
     timer.Create("B2CTF_PhaserSlowThink", 0.5, 0, function() Phaser:_think() end)
@@ -130,5 +152,6 @@ elseif SERVER then
     hook.Add("OnReloaded", "B2CTF_UpdatePhaseOnReload", function()
         print("Reload caused phase reset to " .. Phaser:CurrentPhaseInfo().name)
         Phaser:_broadcastPhase()
+        Phaser:_runHooks()
     end)
 end

@@ -27,7 +27,7 @@ end
 
 hook.Add("PlayerSpawn", "B2CTF_SpawnAtTeamSite", function(ply)
 	if not ( ply and IsValid( ply ) ) then return end
-	if ply:Team() == 0 or ply:Team() > 1000 then return end
+	if not ply:TeamValid() then return end
 
 	local teamInfo = B2CTF_MAP.teams[ply:Team()]
 	if not teamInfo then return end

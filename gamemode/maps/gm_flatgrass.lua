@@ -12,8 +12,8 @@ B2CTF_MAP.teams = {
         name = "Beta",
         description = "",
         color = Color(63, 60, 255),
-        boundaries = {Vector(0, 0, 0), Vector(0, 0, 0)},
-        spawnPoints = {Vector(0, 0, 0), Vector(0, 0, 0)},
+        boundaries = {Vector(-1203.800049, 516.549011, -12799.968750), Vector(-1955.787964, 74.404922, -12574.052734)},
+        spawnPoints = {Vector(-1203.800049, 500, -12799.968750)},
         flagPos = Vector(0, 0, 0),
     },
     {

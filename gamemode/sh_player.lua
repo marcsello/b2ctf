@@ -1,10 +1,14 @@
 local meta = FindMetaTable("Player")
 if not meta then return end
 
+function meta:TeamValid()
+    return self:Team() > 0 and self:Team() < 1000
+end
+
 function meta:CurrentlyBuilding()
     if not IsValid( self ) then return false end
 
-    if self:Team() == 0 or self:Team() > 1000 then
+    if not self:TeamValid() then
         -- not in team
         return false
     end
@@ -25,7 +29,7 @@ end
 
 function meta:AtHome()
     if not ( self and IsValid( self ) ) then return end
-    if self:Team() == 0 or self:Team() > 1000 then return end
+    if not self:TeamValid() then return end
 
     local teamInfo = B2CTF_MAP.teams[self:Team()]
     if not teamInfo then return end
