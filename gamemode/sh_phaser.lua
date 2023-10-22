@@ -41,13 +41,22 @@ GAME_PHASE_INFO = {
     }
 }
 
-local st = CurTime()
 Phaser = {
-    current_phase_id = GAME_PHASE_PREBUILD,
-    next_phase_id = GAME_PHASE_BUILD,
-    start_time = st,
-    end_time = st + GAME_PHASE_INFO[GAME_PHASE_PREBUILD].time
+    current_phase_id = 0,
+    next_phase_id = 0,
+    start_time = 0,
+    end_time = 0
 }
+
+function Phaser:Reset()
+    local st = CurTime()
+    self.current_phase_id = GAME_PHASE_PREBUILD
+    self.next_phase_id = GAME_PHASE_BUILD
+    self.start_time = st
+    self.end_time = st + GAME_PHASE_INFO[self.current_phase_id].time
+end
+
+Phaser:Reset() -- intialize phaser
 
 function Phaser:CurrentPhaseID()
     return self.current_phase_id
@@ -81,15 +90,17 @@ function Phaser:NextPhaseInfo()
     return GAME_PHASE_INFO[self.next_phase_id]
 end
 
+function Phaser:ForceNext()
+    local startTime = CurTime()
+    -- update the current phase to be the next phase, sync, call hooks, etc.
+    self:Update(self.next_phase_id, startTime, startTime + GAME_PHASE_INFO[self.next_phase_id].time)
+end
+
 function Phaser:_think()
     if CLIENT then return end -- this should be server side only
     if self.end_time < CurTime() then
         -- advance to the next phase
-        local nextPhaseID = self.current_phase_id + 1
-        if nextPhaseID > GAME_PHASE_WAR then nextPhaseID = GAME_PHASE_PREBUILD end
-        local startTime = CurTime()
-        -- update the current phase to be the next phase, sync, call hooks, etc.
-        self:Update(nextPhaseID, startTime, startTime + GAME_PHASE_INFO[nextPhaseID].time)
+        self:ForceNext()
     end
 end
 
@@ -107,7 +118,7 @@ function Phaser:Update(newPhaseID, startTime, endTime)
     self.end_time = endTime
 
     self.next_phase_id = self.current_phase_id + 1
-    if self.next_phase_id > GAME_PHASE_WAR then self.next_phase_id = GAME_PHASE_PREBUILD end
+    if self.next_phase_id > #GAME_PHASE_INFO then self.next_phase_id = 1 end
 
     if SERVER then
         self:_broadcastPhase()
