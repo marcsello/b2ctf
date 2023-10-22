@@ -39,6 +39,9 @@ local function findAllEntsPossiblyHomeSick()
     e = table.Add( e, ents.FindByClass("sent_*") )
     e = table.Add( e, ents.FindByClass("wire_*") )
     e = table.Add( e, ents.FindByClass("gmod_*") )
+    e = table.Add( e, ents.FindByClass("weapon_*") )
+    e = table.Add( e, ents.FindByClass("item_*") )
+    e = table.Add( e, ents.FindByClass("npc_*") ) -- SLAM thingies are considered NPC
     return e
 end
 
@@ -46,7 +49,7 @@ local function homeSickProcessEnt(ent --[[=Entity ]])
     if not (ent and IsValid(ent)) then return end
 
     local entCreator = ent:B2CTFGetCreator()
-    if (not IsValid(entCreator)) or (not entCreator:IsPlayer()) or (not entCreator:TeamValid()) then return end
+    if (not entCreator) or (not IsValid(entCreator)) or (not entCreator:IsPlayer()) or (not entCreator:TeamValid()) then return end
 
     local t = B2CTF_MAP.teams[entCreator:Team()]
     if t == nil then return end

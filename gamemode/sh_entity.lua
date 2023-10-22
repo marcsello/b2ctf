@@ -1,6 +1,8 @@
 local meta = FindMetaTable("Entity")
 if not meta then return end
 
+-- Define stuff needed for creator tracking
+
 local MAX_EDICT_BITS = 13 -- copied from gmod source
 
 if SERVER then
@@ -25,14 +27,6 @@ function meta:B2CTFGetCreator()
     return self._b2ctf_creator
 end
 
--- owerride the builtin SetCreator
-local entSetCreator = meta.SetCreator
-if entSetCreator then
-    function meta:SetCreator(ply)
-        self:B2CTFSetCreator(ply)
-        entSetCreator(self, ply)
-    end
-end
 
 if CLIENT then
     net.Receive( "B2CTF_CreatorSync", function( len, sender )
@@ -49,4 +43,17 @@ if CLIENT then
         end )
 
     end )
+end
+
+
+-- Add some creator tracking 
+
+-- override the builtin SetCreator
+-- inspiration taken from https://github.com/FPtje/Falcos-Prop-protection/blob/master/lua/fpp/server/core.lua
+local origEntSetCreator = meta.SetCreator
+if origEntSetCreator then
+    function meta:SetCreator(ply)
+        self:B2CTFSetCreator(ply)
+        origEntSetCreator(self, ply)
+    end
 end

@@ -90,5 +90,45 @@ hook.Add( "PlayerSpawnedSWEP", "B2CTF_StoreSWEPCreator", storeCreator2)
 hook.Add( "PlayerSpawnedSENT", "B2CTF_StoreSENTCreator", storeCreator2)
 hook.Add( "PlayerSpawnedVehicle", "B2CTF_StoreVehicleCreator", storeCreator2)
 
+-- Override cleanup func, to track player items
+-- inspiration taken from https://github.com/FPtje/Falcos-Prop-protection/blob/master/lua/fpp/server/core.lua
+if cleanup then
+    local origCleanupAdd = cleanup.Add
+    function cleanup.Add(ply, Type, ent)
+        if not IsValid(ply) or not IsValid(ent) then return origCleanupAdd(ply, Type, ent) end
+        ent:B2CTFSetCreator(ply)
+        return origCleanupAdd(ply, Type, ent)
+    end
+end
+
+-- Override undo func, to track player items
+-- inspiration taken from https://github.com/FPtje/Falcos-Prop-protection/blob/master/lua/fpp/server/core.lua
+if undo then
+    local AddEntity, SetPlayer, Finish = undo.AddEntity, undo.SetPlayer, undo.Finish
+    local Undo = {}
+    local UndoPlayer
+    function undo.AddEntity(ent, ...)
+        if not isbool(ent) and IsValid(ent) then table.insert(Undo, ent) end
+        AddEntity(ent, ...)
+    end
+
+    function undo.SetPlayer(ply, ...)
+        UndoPlayer = ply
+        SetPlayer(ply, ...)
+    end
+
+    function undo.Finish(...)
+        if IsValid(UndoPlayer) then
+            for _, v in pairs(Undo) do
+                v:B2CTFSetCreator(UndoPlayer)
+            end
+        end
+        Undo = {}
+        UndoPlayer = nil
+
+        Finish(...)
+    end
+end
+
 
 include("sh_sandbox.lua")
