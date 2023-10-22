@@ -2,7 +2,8 @@ local meta = FindMetaTable("Player")
 if not meta then return end
 
 function meta:TeamValid()
-    return self:Team() > 0 and self:Team() < 1000
+    local teamID = self:Team()
+    return teamID > 0 and teamID < 1000 and team.Valid(teamID)
 end
 
 function meta:CurrentlyBuilding()

@@ -64,14 +64,26 @@ local function homeSickProcessEnt(ent --[[=Entity ]])
     else
         -- outside base
         if ent._b2ctf_homesick_remove_at then
-            if ent._b2ctf_homesick_remove_at < CurTime() then
+            if (ent._b2ctf_homesick_remove_at < CurTime()) and (not ent._b2ctf_homesick_remove_started) then
+                -- the point of no return
+                ent._b2ctf_homesick_remove_started = true
 
+                ent:SetColor(Color(0, 0, 0)) -- it's like burning, or something...
+
+                constraint.RemoveAll( ent ) -- remove all constraints, like ropes and stuff
+
+                -- "freeze" and "no-collide" the prop
+                ent:SetNotSolid( true )
+                ent:SetMoveType( MOVETYPE_NONE )
+
+                -- show some effect
                 local ed = EffectData()
                 ed:SetEntity( ent )
                 ed:SetOrigin(ent:GetPos())
                 ed:SetScale(1.5)
                 util.Effect( "entity_remove", ed, true, true )
 
+                -- actually remove the entity later
                 timer.Simple(0.3, function()
                     if IsValid(ent) then
                         ent:Remove()

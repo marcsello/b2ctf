@@ -1,16 +1,32 @@
 -- Shared stuff for sandbox restrictions. Included at the end of sandbox.lua and cl_sandbox.lua NOT shared.lua
 
-hook.Add( "PhysgunPickup", "B2CTF_PickupCheck", function( ply, ent )
-    print(ent)
-    if (not IsValid(ply)) or (not IsValid(ent)) or (not ply:TeamValid()) then return false end -- don't allow if we don't know the players team
-    if not Phaser:CurrentPhaseInfo().buildAllowed then return false end -- don't allow physgun during war
-    local entCreator = ent:B2CTFGetCreator()
-    print(entCreator)
-    if (not IsValid(entCreator)) or (not entCreator:IsPlayer()) or (not entCreator:TeamValid()) then return false end -- only allow touching stuffs spawned by players
-
-    -- allow touching team stuff only
-    if entCreator:Team() != ply:Team() then
+-- Deny sandbox functions when not building
+-- This function is copied to the server file
+local function denyWhenNotBuilding(ply, ...)
+    if (not IsValid(ply)) or (not ply:TeamValid()) then return false end
+    if not ply:CurrentlyBuilding() then
         return false
     end
+end
 
+-- These three are shared because of prediction, so I've kinda duplicated the functionality from the server side script
+hook.Add("PhysgunPickup", "B2CTF_PhysPickupCheck", denyWhenNotBuilding)
+hook.Add("CanTool", "B2CTF_ToolCheck", denyWhenNotBuilding)
+
+hook.Add("CanProperty", "B2CTF_PropertyCheck", function( ply, property, ent )
+    if property == "drive" then return false end -- we just don't allow drive
+    return denyWhenNotBuilding(ply)
+end )
+
+-- Some extra stuff
+
+hook.Add( "CanTool", "B2CTF_DontRemoveDoors", function( ply, tr, toolname, tool, button )
+    if toolname == "remover" and IsValid( tr.Entity ) and tr.Entity:GetClass() == "prop_door_rotating" then
+       return false
+    end
+end )
+
+hook.Add("CanDrive", "B2CTF_DriveCheck", function( ply, ent )
+    -- we just don't allow drive
+    return false
 end )

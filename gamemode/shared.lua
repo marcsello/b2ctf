@@ -3,6 +3,7 @@ include("sh_phaser.lua") -- this is used by utils, so it must preceed it
 -- Run other shared scripts
 include("sh_player.lua")
 include("sh_entity.lua")
+include("sh_protect.lua")
 
 -- Setup the gamemode
 GM.Name = "Build2CTF"

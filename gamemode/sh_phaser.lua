@@ -133,9 +133,9 @@ function Phaser:_broadcastPhase()
 end
 
 function Phaser:_runHooks()
-    local newInfo = GAME_PHASE_INFO[self.current_phase_id]
-    print("New phase: " .. newInfo.name)
-    hook.Run("B2CTF_PhaseChanged", self.current_phase_id, newInfo, self.start_time, self.end_time)
+    local info = GAME_PHASE_INFO[self.current_phase_id]
+    print("New phase: " .. info.name .. " for " .. info.time .. " seconds")
+    hook.Run("B2CTF_PhaseChanged", self.current_phase_id, info, self.start_time, self.end_time)
 end
 
 if CLIENT then -- setup listener for client only
