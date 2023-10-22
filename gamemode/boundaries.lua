@@ -4,6 +4,10 @@ hook.Add("B2CTF_PhaseChanged", "BringBackPlayersWhenHomeSick", function(newPhase
     if info.homeSickness then
         for _, v in ipairs( player.GetAll() ) do
             if not v:AtHome() then
+                local vehicle = v:GetVehicle()
+                if vehicle and IsValid(vehicle) then
+                    v:ExitVehicle()
+                end
                 v:Spawn() -- should bring them home
             end
         end
