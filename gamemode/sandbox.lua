@@ -19,5 +19,8 @@ hook.Add("PlayerSpawnSWEP", "B2CTF_SpawnPropCheck", denyWhenNotBuilding)
 hook.Add("PlayerSpawnVehicle", "B2CTF_SpawnPropCheck", denyWhenNotBuilding)
 hook.Add("CanArmDupe", "B2CTF_DupeCheck", denyWhenNotBuilding)
 hook.Add("CanUndo", "B2CTF_UndoCheck", denyWhenNotBuilding)
+hook.Add("CanEditVariable", "B2CTF_EditVarCheck", function( ent, ply, key, val, editor )
+    return denyWhenNotBuilding(ply)
+end )
 
 include("sh_sandbox.lua")

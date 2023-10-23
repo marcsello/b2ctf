@@ -33,7 +33,7 @@ function GM:PlayerInitialSpawn(ply)
 	end
 end
 
--- Still creator stuff, what to do when user leaves
+-- What to do when user leaves
 local function reassignStuff(ply, teamID)
 	local playersLeftInTeam = team.GetPlayers(teamID)
 	local teamName = team.GetName(teamID)
@@ -144,4 +144,36 @@ hook.Add( "PlayerCanPickupWeapon", "B2CTF_CheckPickup", function( ply, weapon )
             return false -- dont let them pick up these forbidden weapons
         end
     end
+end )
+
+-- Controlling damage stuff
+
+hook.Add( "PlayerShouldTakeDamage", "B2CTF_BuildersShouldNotFight", function( ply, attacker )
+    if not (ply and IsValid(ply) and ply:IsPlayer()) then return end -- only check if the player is a valid player
+
+    if not ply:TeamValid() then
+        -- Block damage if the player does not have a valid team
+        return false
+    end
+
+    if not (attacker and IsValid(attacker) and attacker:IsPlayer()) then return end -- only check the remaining when the attacker is a player
+
+    if not attacker:TeamValid() then
+        -- Block damage if the attacker does not have a valid team
+        return false
+    end
+
+    -- The following might seem unneeded as CurrentlyBuilding() check already covers it
+    -- But pre- and post-war the players arent building, but should not be hurt either
+
+    if not Phaser:CurrentPhaseInfo().fightAllowed then
+        -- Block damage if fight is disallowed in the current phase
+        return false
+    end
+
+    if ply:CurrentlyBuilding() or attacker:CurrentlyBuilding() then
+        -- Also, block damage, if either the attacker or the victim is currently building
+        return false
+    end
+
 end )
