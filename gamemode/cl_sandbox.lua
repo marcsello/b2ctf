@@ -24,8 +24,8 @@ hook.Add( "PlayerBindPress", "B2CTF_CanUndo", function( ply, bind )
     end
 end )
 
-hook.Add("B2CTF_PhaseChanged", "CloseSandboxMenus", function(newPhase, info, start_time, end_time)
-    if not info.buildAllowed then
+hook.Add("B2CTF_PhaseChanged", "CloseSandboxMenus", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
+    if not newPhaseInfo.buildAllowed then
         -- hide menu if building is not allowed in the new phase
         RunConsoleCommand("-menu")
     end

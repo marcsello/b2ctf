@@ -1,7 +1,7 @@
 AddCSLuaFile() -- make this file available on client side
 
 if CLIENT then
-    SWEP.PrintName = "War unfreezer"
+    SWEP.PrintName = "Battle unfreezer"
     SWEP.Slot = 0
     SWEP.SlotPos = 3
     SWEP.DrawAmmo = false
@@ -11,7 +11,7 @@ end
 SWEP.Author = "Marcsello"
 SWEP.Instructions = "Left click to un-freeze"
 SWEP.Contact = "marcsello@derpymail.org"
-SWEP.Purpose = "Unfreeze frozen props during war"
+SWEP.Purpose = "Unfreeze frozen props during combat"
 
 SWEP.ViewModelFOV = 62
 SWEP.ViewModelFlip = false

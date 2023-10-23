@@ -31,6 +31,7 @@ end
 function meta:AtHome()
     if not ( self and IsValid( self ) ) then return end
     if not self:TeamValid() then return end
+    if not B2CTF_MAP then return end
 
     local teamInfo = B2CTF_MAP.teams[self:Team()]
     if not teamInfo then return end

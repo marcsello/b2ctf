@@ -1,8 +1,8 @@
 -- Team site related restrictions
 local outOfBoundsWarningColor = Color(255, 0, 0)
 
-hook.Add("B2CTF_PhaseChanged", "BringBackPlayersWhenHomeSick", function(newPhase, info, start_time, end_time)
-    if info.homeSickness then
+hook.Add("B2CTF_PhaseChanged", "BringBackPlayersWhenHomeSick", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
+    if ((not oldPhaseID) or (not oldPhaseInfo.homeSickness)) and newPhaseInfo.homeSickness then -- Bring them home only if they were allowed to go out in the previous phase
         for _, v in ipairs( player.GetAll() ) do
             if v and IsValid(v) and v:TeamValid() and not v:AtHome() then
                 local vehicle = v:GetVehicle()
@@ -122,8 +122,8 @@ hook.Add( "Think", "B2CTF_EntsAreHomeSickToo", function() -- Check only one enti
 end )
 
 
-hook.Add("B2CTF_PhaseChanged", "ResetHomeSickEntities", function(newPhase, info, start_time, end_time)
-    if not info.homeSickness then
+hook.Add("B2CTF_PhaseChanged", "ResetHomeSickEntities", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
+    if not newPhaseInfo.homeSickness then
         homeSickCheckEnts = nil
         homeSickCheckI = nil
         for _, ent in ipairs(findAllEntsPossiblyHomeSick()) do

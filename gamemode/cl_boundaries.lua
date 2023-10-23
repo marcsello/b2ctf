@@ -1,5 +1,6 @@
 -- Draw boundaries in the 3D world
-local function DrawHomeBoundaries()
+local function DrawHomeBoundaries(bDrawingDepth, bDrawingSkybox, isDraw3DSkybox)
+    if bDrawingSkybox then return end
 
     if (not IsValid(LocalPlayer())) or (not LocalPlayer():TeamValid()) then return end
 

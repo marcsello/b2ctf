@@ -9,6 +9,8 @@ AddCSLuaFile("cl_hud.lua")
 AddCSLuaFile("cl_boundaries.lua")
 AddCSLuaFile("sh_entity.lua")
 AddCSLuaFile("sh_protect.lua")
+AddCSLuaFile("sh_flag.lua")
+AddCSLuaFile("cl_flag.lua")
 AddCSLuaFile("sh_sandbox.lua") -- Included by sandbox.lua and cl_sandbox.lua
 
 
@@ -23,6 +25,7 @@ include("sandbox.lua")
 include("team_spawn.lua")
 include("boundaries.lua")
 include("entity.lua")
+include("cc.lua")
 
 
 -- Everyone should spawn as spectator, and have to use the join menu to join a team
@@ -99,11 +102,11 @@ end )
 
 -- Loadout stuff
 
-hook.Add("B2CTF_PhaseChanged", "AddOrRemoveSandboxWeapons", function(newPhase, info, start_time, end_time)
+hook.Add("B2CTF_PhaseChanged", "AddOrRemoveSandboxWeapons", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
     for _, v in ipairs( player.GetAll() ) do
         if (not IsValid(v)) or (not v:TeamValid()) or (not v:Alive()) then return end -- don't give weapons to invalid, spectator or dead players
 
-        if info.buildAllowed then
+        if newPhaseInfo.buildAllowed then
             v:Give("gmod_tool")
             v:Give("weapon_physgun")
             v:StripWeapon("b2ctf_unfreezer")
@@ -158,6 +161,12 @@ hook.Add( "PlayerShouldTakeDamage", "B2CTF_BuildersShouldNotFight", function( pl
 
     if not (attacker and IsValid(attacker) and attacker:IsPlayer()) then return end -- only check the remaining when the attacker is a player
 
+    if ply == attacker then
+        -- Can't do much about people hurting themselves.
+        -- self-damage is also used by some scripted hurt triggers, so we should allow those
+        return
+    end
+
     if not attacker:TeamValid() then
         -- Block damage if the attacker does not have a valid team
         return false
@@ -177,3 +186,12 @@ hook.Add( "PlayerShouldTakeDamage", "B2CTF_BuildersShouldNotFight", function( pl
     end
 
 end )
+
+hook.Add( "CanPlayerSuicide", "B2CTF_SpectatorsShouldntSuicide", function( ply )
+    if not (ply and IsValid(ply) and ply:TeamValid()) then return false end -- players without a valid team should not be able to suicide
+end )
+
+-- TODO: Put this somewhere else!
+-- Used by cl_flags
+util.PrecacheModel("models/props_canal/canal_cap001.mdl")
+util.PrecacheModel("models/props_c17/statue_horse.mdl")
