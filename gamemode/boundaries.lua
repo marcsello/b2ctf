@@ -1,9 +1,10 @@
 -- Team site related restrictions
+local outOfBoundsWarningColor = Color(255, 0, 0)
 
 hook.Add("B2CTF_PhaseChanged", "BringBackPlayersWhenHomeSick", function(newPhase, info, start_time, end_time)
     if info.homeSickness then
         for _, v in ipairs( player.GetAll() ) do
-            if not v:AtHome() then
+            if v and IsValid(v) and v:TeamValid() and not v:AtHome() then
                 local vehicle = v:GetVehicle()
                 if vehicle and IsValid(vehicle) then
                     v:ExitVehicle()
@@ -61,7 +62,7 @@ local function homeSickProcessEnt(ent --[[=Entity ]])
     if ent:GetPos():WithinAABox(t.boundaries[1], t.boundaries[2]) then
         -- inside base
         if ent._b2ctf_homesick_remove_at then
-            ent:SetColor(ent._b2ctf_homesick_orig_color or Color(255, 255, 255))
+            ent:SetColor(ent._b2ctf_homesick_orig_color or color_white)
             ent._b2ctf_homesick_remove_at = nil
             ent._b2ctf_homesick_orig_color = nil
         end
@@ -72,7 +73,7 @@ local function homeSickProcessEnt(ent --[[=Entity ]])
                 -- the point of no return
                 ent._b2ctf_homesick_remove_started = true
 
-                ent:SetColor(Color(0, 0, 0)) -- it's like burning, or something...
+                ent:SetColor(color_black) -- it's like burning, or something...
 
                 constraint.RemoveAll( ent ) -- remove all constraints, like ropes and stuff
 
@@ -98,7 +99,7 @@ local function homeSickProcessEnt(ent --[[=Entity ]])
         else
             ent._b2ctf_homesick_remove_at = CurTime() + 3
             ent._b2ctf_homesick_orig_color = ent:GetColor()
-            ent:SetColor(Color(255, 0, 0))
+            ent:SetColor(outOfBoundsWarningColor)
         end
     end
 end
@@ -127,7 +128,7 @@ hook.Add("B2CTF_PhaseChanged", "ResetHomeSickEntities", function(newPhase, info,
         homeSickCheckI = nil
         for _, ent in ipairs(findAllEntsPossiblyHomeSick()) do
             if ent._b2ctf_homesick_remove_at then
-                ent:SetColor(ent._b2ctf_homesick_orig_color or Color(255, 255, 255))
+                ent:SetColor(ent._b2ctf_homesick_orig_color or color_white)
                 ent._b2ctf_homesick_remove_at = nil
                 ent._b2ctf_homesick_orig_color = nil
             end
