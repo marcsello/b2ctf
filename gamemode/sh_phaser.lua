@@ -1,6 +1,7 @@
 -- Control/sync the current game phase
 if SERVER then
-    util.AddNetworkString("B2CTF_PhaseUpdate")
+    util.AddNetworkString("B2CTF_PhaseUpdate") -- sent by the server to update player's state
+    util.AddNetworkString("B2CTF_PhaseRequestUpdate") -- sent by the client to request a sync
 end
 
 -- Setup some global vars, functions
@@ -26,14 +27,14 @@ GAME_PHASE_INFO = {
         homeSickness = true,
     },
     [GAME_PHASE_PREWAR] = {
-        time = 30, -- 1m
+        time = 5, -- 1m
         name = "Prepare for war",
         buildAllowed = false,
         fightAllowed = false,
         homeSickness = true,
     },
     [GAME_PHASE_WAR] = {
-        time = 60, -- 25m
+        time = 120, -- 25m
         name = "War",
         buildAllowed = false,
         fightAllowed = true,
@@ -152,7 +153,7 @@ function Phaser:_runHooks(oldPhaseID)
 end
 
 if CLIENT then -- setup listener for client only
-    net.Receive( "B2CTF_PhaseUpdate", function( len, ply )
+    net.Receive("B2CTF_PhaseUpdate", function( len, ply )
         if ( IsValid( ply ) and ply:IsPlayer() ) then return end -- disallow these messages from players
         local newPhaseID = net.ReadUInt(3)
         local isReset = net.ReadBool()
@@ -160,9 +161,22 @@ if CLIENT then -- setup listener for client only
         local endTime = net.ReadDouble()
         Phaser:_update(newPhaseID, startTime, endTime, isReset)
     end)
+
+    hook.Add("OnReloaded", "B2CTF_PhaseRequestUpdate", function()
+        net.Start("B2CTF_PhaseRequestUpdate")
+        net.SendToServer()
+    end )
+
 elseif SERVER then
     timer.Create("B2CTF_PhaserSlowThink", 0.2, 0, function() Phaser:_think() end)
     hook.Add("PlayerInitialSpawn", "B2CTF_SendInitialPhase", function(ply) Phaser:_sendPhaseToPlayer(ply) end )
+
+    net.Receive("B2CTF_PhaseRequestUpdate", function( len, ply )
+        if ply and IsValid(ply) then
+            Phaser:_sendPhaseToPlayer(ply)
+        end
+    end )
+
 end
 
 

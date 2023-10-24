@@ -45,7 +45,6 @@ if meta.AddCount then
     origAddCount = meta.AddCount
     function meta:AddCount(Type, ent)
         if not IsValid(self) or not IsValid(ent) then return origAddCount(self, Type, ent) end
-        print(ent)
         ent:B2CTFSetCreator(self)
         return origAddCount(self, Type, ent)
     end

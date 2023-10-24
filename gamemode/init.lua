@@ -15,7 +15,7 @@ AddCSLuaFile("sh_sandbox.lua") -- Included by sandbox.lua and cl_sandbox.lua
 
 
 -- If there is a mapfile send it to the client (we define b2ctf specific settings here)
-if file.Exists("b2ctf/gamemode/maps/" .. game.GetMap() .. ".lua", "LUA") then 
+if file.Exists("b2ctf/gamemode/maps/" .. game.GetMap() .. ".lua", "LUA") then
 	AddCSLuaFile("maps/" .. game.GetMap() .. ".lua")
 end
 

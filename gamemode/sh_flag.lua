@@ -2,8 +2,9 @@
 if not B2CTF_MAP then return end -- flags rely heavily on map data. If map data is missing the game would be broken anyways
 
 if SERVER then
-    util.AddNetworkString("B2CTF_FlagEventUpdate")
-    util.AddNetworkString("B2CTF_FlagFullSync")
+    util.AddNetworkString("B2CTF_FlagEventUpdate") -- Sent by the server on events
+    util.AddNetworkString("B2CTF_FlagFullSync") -- Sent by the server if a full synchronization is needed
+    util.AddNetworkString("B2CTF_FlagRequestSync") -- Send by the client when it thinks it needs a full synchronization
 end
 
 local FLAG_EVENT_DROP = 0
@@ -42,11 +43,34 @@ function FlagManager:FlagIDValid(flagID)
     return self.flags[flagID] != nil
 end
 
+function FlagManager:IterFlags()
+    return ipairs(self.flags)
+end
+
+function FlagManager:Configured()
+    return #self.flags == #B2CTF_MAP.teams
+end
+
+function FlagManager:GetFlagIDGrabbedByPlayer(ply)
+    if not (ply and IsValid(ply)) then return end
+    for i, v in ipairs(self.flags) do
+        if v.grabbedBy == ply then return i end
+    end
+    -- default return nil
+end
+
+function FlagManager:GetFlagInfoGrabbedByPlayer(ply)
+    local flagID = self:GetFlagIDGrabbedByPlayer(ply)
+    if flagID then
+        return self.flags[flagID]
+    end
+end
+
 function FlagManager:DropFlag(flagID, droppedPos, droppedTs)
-    if not self:FlagIDValid(flagID) then return end
+    assert(self:FlagIDValid(flagID), "invalid flag id")
 
     self.flags[flagID].grabbedBy = nil
-    self.flags[flagID].droppedPos = dropPos
+    self.flags[flagID].droppedPos = droppedPos
     self.flags[flagID].droppedTs = droppedTs
 
     local teamName = team.GetName(self.flags[flagID].belongsToTeam)
@@ -64,7 +88,7 @@ function FlagManager:DropFlag(flagID, droppedPos, droppedTs)
 end
 
 function FlagManager:ReturnFlag(flagID)
-    if not self:FlagIDValid(flagID) then return end
+    assert(self:FlagIDValid(flagID), "invalid flag id")
 
     self.flags[flagID].grabbedBy = nil
     self.flags[flagID].droppedPos = nil
@@ -83,7 +107,8 @@ function FlagManager:ReturnFlag(flagID)
 end
 
 function FlagManager:GrabFlag(flagID, ply)
-    if not (ply and IsValid(ply) and self:FlagIDValid(flagID)) then return end
+    assert(self:FlagIDValid(flagID), "invalid flag id")
+    if not (ply and IsValid(ply)) then return end
 
     self.flags[flagID].grabbedBy = ply
     self.flags[flagID].droppedPos = nil
@@ -102,8 +127,9 @@ function FlagManager:GrabFlag(flagID, ply)
     end
 end
 
-function FlagManager:CaptureFlag(flagID, asd) -- TODO
-    -- TODO: Validate params
+function FlagManager:CaptureFlag(flagID, capturedBy)
+    assert(self:FlagIDValid(flagID), "invalid flag id")
+    if not (capturedBy and IsValid(capturedBy)) then return end
 
     self.flags[flagID].grabbedBy = nil
     self.flags[flagID].droppedPos = nil
@@ -114,24 +140,11 @@ function FlagManager:CaptureFlag(flagID, asd) -- TODO
         net.Start("B2CTF_FlagEventUpdate")
         net.WriteUInt(FLAG_EVENT_CAPTURE, NET_EVENT_LEN)
         net.WriteUInt(flagID, NET_FLAG_ID_LEN)
+        net.WriteEntity(capturedBy)
         net.Broadcast()
     end
 end
 
-function FlagManager:GetFlagIDGrabbedByPlayer(ply)
-    if not (ply and IsValid(ply)) then return end
-    for i, v in ipairs(self.flags) do
-        if v.grabbedBy == ply then return i end
-    end
-    -- default return nil
-end
-
-function FlagManager:GetFlagInfoGrabbedByPlayer(ply)
-    local flagID = self:GetFlagIDGrabbedByPlayer(ply)
-    if flagID then
-        return self.flags[flagID]
-    end
-end
 
 -- The basic structure of FlagManager is ready
 
@@ -139,13 +152,44 @@ if CLIENT then
     include("cl_flag.lua") -- Include cl_flag.lua here, so we can catch the first InitComplete hook
 end
 
-FlagManager:Reset() -- initial setup
+FlagManager:Reset() -- initial setup (This tirggers InitComplete hook)
 
 -- And now, do stuff from server side to make things tick
 
 if SERVER then
 
-    function FlagManager:_checkCapture(ply)
+    -- Define some "hidden" functions
+
+    function FlagManager:_sendFullSyncToPlayer(ply)
+        -- The number of flags, their default positions etc, should be infered from the B2CTF_MAP variable
+        -- So we only need to send the three important fields for each flag
+        net.Start("B2CTF_FlagFullSync")
+        for i, v in ipairs(self.flags) do
+            local grabbedBySet = v.grabbedBy != nil
+            local droppedPosSet = v.droppedPos != nil
+            local droppedTsSet = v.droppedTs != nil
+            -- first, send what's set
+            net.WriteBool(grabbedBySet)
+            net.WriteBool(droppedPosSet)
+            net.WriteBool(droppedTsSet)
+
+            -- then send the value if needed
+            if grabbedBySet then
+                net.WriteEntity(v.grabbedBy)
+            end
+            if droppedPosSet then
+                net.WriteVector(v.droppedPos)
+            end
+            if droppedTsSet then
+                net.WriteDouble(v.droppedTs)
+            end
+        end
+        net.Send(ply)
+
+    end
+
+    function FlagManager:_playerThink(ply)
+        -- The main business logic
         local potentialCapture = nil
         for i, v in ipairs(self.flags) do -- Normally I would write two for loops, but this feels a little more optimized
 
@@ -161,27 +205,40 @@ if SERVER then
             self:GrabFlag(potentialCapture, ply)
         end
     end
-    hook.Add("PlayerTick", "B2CTF_CheckFlagCapture", function(ply) -- WARNING: Does not run when in vehicle!
+
+    function FlagManager:_checkAndDropFlag(ply)
+        local flagID = self:GetFlagIDGrabbedByPlayer(ply)
+        if not flagID then return end -- player wasn't holding any of the flags
+        self:DropFlag(flagID, ply:GetPos(), CurTime())
+    end
+
+    -- then call them when appropriate
+
+    hook.Add("PlayerTick", "B2CTF_FlagManagerPlayerThink", function(ply) -- WARNING: Does not run when in vehicle! (but that's fine)
         if not Phaser:CurrentPhaseInfo().fightAllowed then return end -- do nothing, when we are not fighting
         if IsValid(ply) and ply:IsPlayer() and ply:TeamValid() and ply:Alive() then -- only work for players who are in valid team, and alive
-            FlagManager:_checkCapture(ply)
+            FlagManager:_playerThink(ply)
         end
     end)
 
-    function FlagManager:_checkAndDropFlag(ply)
-        for i, v in ipairs(self.flags) do
-            if v.grabbedBy == ply then
-                self:DropFlag(i, ply:GetPos(), CurTime())
-            end
-        end
-    end
     hook.Add( "PlayerDeath", "B2CTF_DropFlag", function( victim, inflictor, attacker )
+        if not Phaser:CurrentPhaseInfo().fightAllowed then return end -- do nothing, when we are not fighting
         if IsValid(victim) and victim:IsPlayer() and victim:TeamValid() then
             FlagManager:_checkAndDropFlag(victim)
         end
     end )
 
+    hook.Add("PlayerInitialSpawn", "B2CTF_SendInitialFlagsState", function(ply) FlagManager:_sendFullSyncToPlayer(ply) end )
+
+    net.Receive("B2CTF_FlagRequestSync", function( len, ply )
+        if ply and IsValid(ply) then
+            FlagManager:_sendFullSyncToPlayer(ply)
+        end
+    end )
+
 end
+
+-- Shared
 
 hook.Add("B2CTF_PhaseChanged", "ResetFlagsAtTheEndOfWar", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
     if (not oldPhaseID) or (oldPhaseInfo.fightAllowed and (not newPhaseInfo.fightAllowed)) then -- When we don't know the previous phase, it's safer to just reset
@@ -216,14 +273,42 @@ if CLIENT then -- sync recv
 
         if event == FLAG_EVENT_CAPTURE then
             local flagID = net.ReadUInt(NET_FLAG_ID_LEN)
-            FlagManager:CaptureFlag(flagID, nil) -- TODO
+            local capturedBy = net.ReadEntity()
+            FlagManager:CaptureFlag(flagID, capturedBy)
         end
 
     end)
 
     net.Receive( "B2CTF_FlagFullSync", function( len, ply )
-        -- TODO
+        for _, v in FlagManager:IterFlags() do
+            local grabbedBySet = net.ReadBool()
+            local droppedPosSet = net.ReadBool()
+            local droppedTsSet = net.ReadBool()
 
+            -- this is needed, because we need to "nil-out" a field when it's unset on the server
+            local grabbedBy = nil
+            local droppedPos = nil
+            local droppedTs = nil
+
+            if grabbedBySet then
+                grabbedBy = net.ReadEntity()
+            end
+            if droppedPosSet then
+                droppedPos = net.ReadVector()
+            end
+            if droppedTsSet then
+                droppedTs = net.ReadDouble()
+            end
+
+            v.grabbedBy = grabbedBy
+            v.droppedPos = droppedPos
+            v.droppedTs = droppedTs
+        end
     end)
+
+    hook.Add("OnReloaded", "B2CTF_FlagRequestSync", function()
+        net.Start("B2CTF_FlagRequestSync")
+        net.SendToServer()
+    end )
 
 end
