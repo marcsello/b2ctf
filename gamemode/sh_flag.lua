@@ -209,7 +209,18 @@ if SERVER then
     function FlagManager:_checkAndDropFlag(ply)
         local flagID = self:GetFlagIDGrabbedByPlayer(ply)
         if not flagID then return end -- player wasn't holding any of the flags
-        self:DropFlag(flagID, ply:GetPos(), CurTime())
+        -- Run a trace bellow the player to find the ground, so flags won't be dropped mid-air
+        local dropPos = ply:GetPos()
+        local tr = util.TraceLine({
+            start = dropPos + Vector(0,0,10), -- Start a few units above
+            endpos = dropPos - Vector(0,0,10000), -- End a lot more units bellow
+            mask = MASK_PLAYERSOLID,
+        })
+        if tr.Hit then -- ground found
+            dropPos = tr.HitPos
+        end
+
+        self:DropFlag(flagID, dropPos, CurTime())
     end
 
     -- then call them when appropriate
