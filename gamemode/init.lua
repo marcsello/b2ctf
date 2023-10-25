@@ -27,15 +27,6 @@ include("boundaries.lua")
 include("entity.lua")
 include("cc.lua")
 
-
--- Everyone should spawn as spectator, and have to use the join menu to join a team
-function GM:PlayerInitialSpawn(ply)
-	if ply:Team() == TEAM_UNASSIGNED or ply:Team() == TEAM_CONNECTING then
-		ply:SetTeam(TEAM_SPECTATOR)
-		GAMEMODE:PlayerSpawnAsSpectator(ply)
-	end
-end
-
 -- What to do when user leaves
 local function reassignStuff(ply, teamID)
 	local playersLeftInTeam = team.GetPlayers(teamID)
