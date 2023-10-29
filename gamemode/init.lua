@@ -116,7 +116,7 @@ hook.Add("PlayerDisconnected", "B2CTF_ReassignCreatedEntsOnLeaveOrCleanup", func
         if player.GetCount() <= 1 then
             -- This was the last online player, reset the game
             print("Last player disconnected, resetting game...")
-            GM:ResetGame()
+            GAMEMODE:ResetGame()
         else
             reassignStuff(ply, ply:Team())
         end
