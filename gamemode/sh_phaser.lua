@@ -4,6 +4,12 @@ if SERVER then
     util.AddNetworkString("B2CTF_PhaseRequestUpdate") -- sent by the client to request a sync
 end
 
+-- Note: Don't forget to update these in the b2ctf.txt file as well
+local preBuildTimeConvar = CreateConVar("b2ctf_phase_time_prebuild", "30",   FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Pre-build phase time", 5)
+local buildTimeConvar    = CreateConVar("b2ctf_phase_time_build",    "3600", FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Build phase time", 5)
+local preWarTimeConvar   = CreateConVar("b2ctf_phase_time_prewar",   "60",   FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Pre-war phase time", 5)
+local warTimeConvar      = CreateConVar("b2ctf_phase_time_war",      "1800", FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "War phase time", 5)
+
 -- Setup some global vars, functions
 GAME_PHASE_PREBUILD = 1
 GAME_PHASE_BUILD = 2
@@ -13,28 +19,28 @@ GAME_PHASE_WAR = 4
 
 GAME_PHASE_INFO = {
     [GAME_PHASE_PREBUILD] = {
-        time = 5, -- 30 sec
-        name = "Coffee break",
+        time = preBuildTimeConvar:GetInt(),
+        name = "Intermezzo",
         buildAllowed = false, -- Spawn menu works, players have toolgun and physgun
         fightAllowed = false, -- 
         homeSickness = false, -- Players hurt when leaving the site, also brought back on phase change, props also break that wander around
     },
     [GAME_PHASE_BUILD] = {
-        time = 120, -- 1h
+        time = buildTimeConvar:GetInt(),
         name = "Building",
         buildAllowed = true,
         fightAllowed = false,
         homeSickness = true,
     },
     [GAME_PHASE_PREWAR] = {
-        time = 5, -- 1m
+        time = preWarTimeConvar:GetInt(),
         name = "Prepare for war",
         buildAllowed = false,
         fightAllowed = false,
         homeSickness = true,
     },
     [GAME_PHASE_WAR] = {
-        time = 120, -- 25m
+        time = warTimeConvar:GetInt(),
         name = "War",
         buildAllowed = false,
         fightAllowed = true,

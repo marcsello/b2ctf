@@ -11,6 +11,7 @@ end
 
 function meta:B2CTFSetCreator(ply --[[=Player]])
     self._b2ctf_creator = ply
+    -- b2ctf creator property is used for two things: homesick props, and the builtin prop protection
 
     if SERVER then
         timer.Simple(0.2, function() -- when the entity is just created, it may not exist on the client side yet

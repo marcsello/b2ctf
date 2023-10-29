@@ -7,6 +7,8 @@ if SERVER then
     util.AddNetworkString("B2CTF_FlagRequestSync") -- Send by the client when it thinks it needs a full synchronization
 end
 
+local autoReturnConvar = CreateConVar("b2ctf_flag_auto_return_time", "30", FCVAR_REPLICATED, "Flag auto return time", 1)
+
 local FLAG_EVENT_DROP = 0
 local FLAG_EVENT_RETURN = 1
 local FLAG_EVENT_GRAB = 2
@@ -15,7 +17,6 @@ local FLAG_EVENT_CAPTURE = 3
 local NET_EVENT_LEN = 2 -- in bits
 local NET_FLAG_ID_LEN = 4 -- More than 15 teams will break this
 
-local FLAG_RETURN_TIME = 30 -- TODO: make it a convar
 local FLAG_GRAB_DISTANCE = 2300
 
 FlagManager = FlagManager or { -- prevent re-creating the whole object on
@@ -87,7 +88,7 @@ function FlagManager:DropFlag(flagID, droppedPos, droppedTs)
     local teamName = team.GetName(flagID)
     print("The flag of " .. teamName .. " has been dropped")
 
-    hook.Run("B2CTF_FlagDropped", flagID, droppedPos, droppedTs, droppedTs + FLAG_RETURN_TIME) -- teamID, dropPos, dropTime, autoReturnTime
+    hook.Run("B2CTF_FlagDropped", flagID, droppedPos, droppedTs) -- teamID, dropPos, dropTime
 
     -- Sync
     if SERVER then
@@ -249,7 +250,7 @@ if SERVER then
             local dropped = false
             if flag.droppedPos then
                 local dropTime = CurTime() - flag.droppedTs
-                if dropTime < FLAG_RETURN_TIME then  -- ignore flag if it's auto return time already spent, to avoid undefined states
+                if dropTime < autoReturnConvar:GetInt() then  -- ignore flag if it's auto return time already spent, to avoid undefined states
                     checkPos = flag.droppedPos
                     dropped = true
                 end
@@ -306,7 +307,7 @@ if SERVER then
         for i, flag in self:IterFlags() do
             if flag.droppedTs and flag.droppedPos and (not flag.grabbedBy) then
                 local dropTime = CurTime() - flag.droppedTs
-                if dropTime >= FLAG_RETURN_TIME then
+                if dropTime >= autoReturnConvar:GetInt() then
                     self:ReturnFlag(i, nil) -- nil ply = autoReturn
                 end
             end

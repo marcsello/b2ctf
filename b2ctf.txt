@@ -4,4 +4,62 @@
     "maps"          "^b2ctf_"
     "category"      "pvp"
     "menusystem"    "1"
+
+    "settings"
+	{
+		1
+		{
+			"name"		"b2ctf_phase_time_prebuild"
+			"text"		"Pre-build phase time"
+			"help"		"The time for the pre-build phase in seconds (on-the-fly change not supported)"
+			"type"		"Numeric"
+			"default"	"30"
+		}
+
+        2
+		{
+			"name"		"b2ctf_phase_time_build"
+			"text"		"Build phase time"
+			"help"		"The time for the build phase in seconds (on-the-fly change not supported)"
+			"type"		"Numeric"
+			"default"	"3600"
+		}
+
+        3
+		{
+			"name"		"b2ctf_phase_time_prewar"
+			"text"		"Pre-war phase time"
+			"help"		"The time for the pre-war phase in seconds (on-the-fly change not supported)"
+			"type"		"Numeric"
+			"default"	"60"
+		}
+
+        4
+		{
+			"name"		"b2ctf_phase_time_war"
+			"text"		"War phase time"
+			"help"		"The time for the war phase in seconds (on-the-fly change not supported)"
+			"type"		"Numeric"
+			"default"	"1800"
+		}
+
+        5
+		{
+			"name"		"b2ctf_flag_auto_return_time"
+			"text"		"Flag auto return time"
+			"help"		"Time for when dropped flags are automatically returned"
+			"type"		"Numeric"
+			"default"	"30"
+		}
+
+		6
+		{
+			"name"		"b2ctf_use_builtin_protection"
+			"text"		"Use builtin protection"
+			"help"		"Enable the builtin prop protection. Disable for byo (on-the-fly change not supported)"
+			"type"		"CheckBox"
+			"default"	"1"
+		}
+    }
+
 }

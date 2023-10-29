@@ -1,5 +1,11 @@
 -- homebrew "prop protection"
--- TODO: Allow disabling it
+
+local useBuiltinProtectionConvar = CreateConVar("b2ctf_use_builtin_protection", "1", FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Use builtin protection")
+
+if not useBuiltinProtectionConvar:GetBool() then
+    print("B2CTF Builtin prop protection is disabled")
+    return
+end
 
 -- Since this is a pretty offensive gamemod, we only limit a few things, like using physgun on other teams props
 -- But damage, use, etc. is allowed
