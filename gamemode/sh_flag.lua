@@ -69,6 +69,14 @@ function FlagManager:GetFlagInfoGrabbedByPlayer(ply)
     end
 end
 
+function FlagManager:GetFlagIDGrabbedByTeam(teamID)
+    -- Checks if the given team has grabbed any flag
+    for i, flag in ipairs(self.flags) do
+        if flag.grabbedBy and flag.grabbedBy:Team() == teamID then return i end
+    end
+    -- default: return nil
+end
+
 function FlagManager:DropFlag(flagID, droppedPos, droppedTs)
     assert(self:FlagIDValid(flagID), "invalid flag id")
 
@@ -132,13 +140,15 @@ function FlagManager:GrabFlag(flagID, ply, flagWasDropped)
     self.flags[flagID].droppedTs = nil
 
     local teamName = team.GetName(flagID)
+    local grabberTeamID = ply:Team()
+    local grabberTeamName = team.GetName(grabberTeamID)
     if flagWasDropped then
-        print("The flag of " .. teamName .. " is grabbed by " .. ply:Nick() .. " (from ground)")
+        print("The flag of " .. teamName .. " is grabbed by " .. ply:Nick() .. " from " ..  grabberTeamName .. " (from ground)")
     else
-        print("The flag of " .. teamName .. " is grabbed by " .. ply:Nick() .. " (from base)")
+        print("The flag of " .. teamName .. " is grabbed by " .. ply:Nick() .. " from " ..  grabberTeamName .. " (from base)")
     end
 
-    hook.Run("B2CTF_FlagGrabbed", flagID, ply, flagWasDropped) -- teamID, player
+    hook.Run("B2CTF_FlagGrabbed", flagID, grabberTeamID, ply, flagWasDropped) -- teamID, player
 
     -- Sync
     if SERVER then

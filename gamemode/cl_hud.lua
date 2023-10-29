@@ -1,22 +1,43 @@
 -- Draw all the custom HUD elements
 
 local atHome = false
-local homeSymbol = Material("phoenix_storms/stripes")
+local teamID = -1
+local teamIDValid = false
+local grabbedAnyFlag = false
+local iconSize = 32
+
+local homeSymbol = Material("models/wireframe")
 
 timer.Create("B2CTF_SlowUpdateHUDValues", 0.2, 0, function()
     -- Update these values less frequently, as they are costly to caluclate
     if not IsValid(LocalPlayer()) then return end
     atHome = LocalPlayer():AtHome()
+    teamID = LocalPlayer():Team()
+    teamIDValid = FlagManager:FlagIDValid(teamID)
+    grabbedAnyFlag = FlagManager:GetFlagIDGrabbedByTeam(teamID) != nil
 end)
 
 
 
 local function DrawCustomHUD()
     if atHome then
-        local iconSize = 32
+        surface.SetDrawColor(255, 255, 255, 255)
         surface.SetMaterial(homeSymbol)
-        surface.SetDrawColor(255, 255, 255, 255) -- Adjust the color as needed
-        surface.DrawTexturedRect(10, 10, iconSize, iconSize) -- Adjust the position as needed
+        surface.DrawTexturedRect(10, 10, iconSize, iconSize)
+    end
+    if teamIDValid then
+        if FlagManager.flags[teamID].grabbedBy or FlagManager.flags[teamID].droppedPos then
+            -- own flag taken by enemy
+            surface.SetDrawColor(B2CTF_MAP.teams[teamID].color)
+            surface.SetMaterial(homeSymbol)
+            surface.DrawTexturedRect(10, 10 + (iconSize + 2) * 2, iconSize, iconSize)
+        end
+        if grabbedAnyFlag then
+            -- took someone's flag
+            surface.SetDrawColor(B2CTF_MAP.teams[teamID].color)
+            surface.SetMaterial(homeSymbol)
+            surface.DrawTexturedRect(10, 10 + (iconSize + 2) * 3, iconSize, iconSize)
+        end
     end
 
     local timeLeft = Phaser:CurrentPhaseTimeLeft()
@@ -42,6 +63,10 @@ local function DrawCustomHUD()
     surface.DrawRect(50, 125, barWidth, barHeight)
     surface.SetDrawColor(0, 128, 255, 255) -- Adjust the color as needed
     surface.DrawRect(50, 125, barWidth * progress, barHeight)
+
+    for i, t in ipairs(B2CTF_MAP.teams) do
+        draw.SimpleText(t.name .. " " .. team.GetScore(i), "HudHintTextLarge", 50, 150 + 15 * i, color_white, TEXT_ALIGN_LEFT)
+    end
 
 end
 
