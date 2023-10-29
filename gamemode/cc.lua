@@ -1,9 +1,8 @@
 -- Console commands
 
 local function resetGame()
-    print("Resetting game")
-    Phaser:Reset()
-    FlagManager:Reset()
+    print("Resetting game...")
+    GAMEMODE:ResetGame()
 end
 concommand.Add("b2ctf_reset_game", resetGame, nil, "Clanup map, reset phase and force all players to choose team again", 0)
 

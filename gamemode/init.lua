@@ -27,6 +27,32 @@ include("boundaries.lua")
 include("entity.lua")
 include("cc.lua")
 
+function GM:ResetGame()
+    -- Reset business logic
+    Phaser:Reset()
+    FlagManager:Reset()
+
+    -- Reset team scores
+    for i, v in pairs(team.GetAllTeams()) do
+        team.SetScore( i, 0 ) -- yes, this resets spectators, connecting etc. scores too
+    end
+
+    -- TODO: Reset player stats? and unassign them from their teams?
+
+    -- Cleanup things (copied from here: https://github.com/Facepunch/garrysmod/blob/e189f14c088298ca800136fcfcfaf5d8535b6648/garrysmod/lua/includes/modules/cleanup.lua#L148)
+    for key, ply in pairs( cleanup.GetList() ) do
+        for _, t in pairs( ply ) do
+            for __, ent in pairs( t ) do
+                if ( IsValid( ent ) ) then ent:Remove() end
+            end
+            table.Empty( t )
+        end
+    end
+    game.CleanUpMap()
+
+    PrintMessage(HUD_PRINTTALK, "The game has been reset")
+end
+
 -- What to do when user leaves
 local function reassignStuff(ply, teamID)
 	local playersLeftInTeam = team.GetPlayers(teamID)
@@ -85,9 +111,15 @@ hook.Add("PlayerChangedTeam", "B2CTF_ReassignCreatedEntsOnTeamChange", function(
 		reassignStuff(ply, oldTeam)
 end )
 
-hook.Add("PlayerDisconnected", "B2CTF_ReassignCreatedEntsOnLeave", function(ply)
-		if not (ply and IsValid(ply) and ply:TeamValid()) then return end
-		reassignStuff(ply, ply:Team())
+hook.Add("PlayerDisconnected", "B2CTF_ReassignCreatedEntsOnLeaveOrCleanup", function(ply)
+        if not (ply and IsValid(ply) and ply:TeamValid()) then return end
+        if player.GetCount() <= 1 then
+            -- This was the last online player, reset the game
+            print("Last player disconnected, resetting game...")
+            GM:ResetGame()
+        else
+            reassignStuff(ply, ply:Team())
+        end
 end )
 
 
