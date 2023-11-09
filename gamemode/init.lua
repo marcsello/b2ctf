@@ -64,7 +64,7 @@ local function reassignStuff(ply, teamID)
 	if playersLeftInTeam and #playersLeftInTeam > 0 then
 		for _, p in ipairs(playersLeftInTeam) do
 			-- This hook is called before the actual team change, so it is possible, that the player is still assigned to their old team
-			if p ~= ply then
+			if p ~= ply then -- ignore self
 				newPly = p -- TODO: Randomize?
 			end
 		end
