@@ -11,6 +11,7 @@ AddCSLuaFile("sh_entity.lua")
 AddCSLuaFile("sh_protect.lua")
 AddCSLuaFile("sh_flag.lua")
 AddCSLuaFile("cl_flag.lua")
+AddCSLuaFile("cl_limits.lua")
 AddCSLuaFile("sh_sandbox.lua") -- Included by sandbox.lua and cl_sandbox.lua
 
 
@@ -26,6 +27,7 @@ include("team_spawn.lua")
 include("boundaries.lua")
 include("entity.lua")
 include("cc.lua")
+include("limits.lua")
 
 function GM:ResetGame()
     -- Reset business logic
@@ -33,7 +35,7 @@ function GM:ResetGame()
     FlagManager:Reset()
 
     -- Reset team scores
-    for i, v in pairs(team.GetAllTeams()) do
+    for i, v in pairs(team.GetAllTeams()) do  -- teams aren't a continous array, so we need pairs instead of ipairs
         team.SetScore( i, 0 ) -- yes, this resets spectators, connecting etc. scores too
     end
 
