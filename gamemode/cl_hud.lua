@@ -1,6 +1,5 @@
 -- Draw all the custom HUD elements
 
-local atHome = false
 local teamID = -1
 local teamIDValid = false
 local grabbedAnyFlag = false
@@ -11,16 +10,15 @@ local homeSymbol = Material("models/wireframe")
 timer.Create("B2CTF_SlowUpdateHUDValues", 0.2, 0, function()
     -- Update these values less frequently, as they are costly to caluclate
     if not IsValid(LocalPlayer()) then return end
-    atHome = LocalPlayer():AtHome()
-    teamID = LocalPlayer():Team()
-    teamIDValid = FlagManager:FlagIDValid(teamID)
+    teamID = LocalPlayer():Team() -- this is actually quick to read, but we want it to be consistent with other slow things
+    teamIDValid = LocalPlayer():TeamValid() and FlagManager:FlagIDValid(teamID)
     grabbedAnyFlag = FlagManager:GetFlagIDGrabbedByTeam(teamID) ~= nil
 end)
 
 
 
 local function DrawCustomHUD()
-    if atHome then
+    if LocalPlayer():AtHome() then -- AtHome is quick to read
         surface.SetDrawColor(255, 255, 255, 255)
         surface.SetMaterial(homeSymbol)
         surface.DrawTexturedRect(10, 10, iconSize, iconSize)

@@ -28,16 +28,34 @@ function meta:CurrentlyBuilding()
 
 end
 
+-- We would like to cache AtHome, because it's slow to calculate and may be used multiple times per tick
+-- it also does not have to be that precise
+
 function meta:AtHome()
-    if not ( self and IsValid( self ) ) then return end
-    if not self:TeamValid() then return end
+    return self._b2ctf_atHome
+end
+
+function meta:_setAtHome( atHome )
+    self._b2ctf_atHome = atHome
+end
+
+
+timer.Create("B2CTF_SlowUpdateAtHome", 0.25, 0, function()
     if not B2CTF_MAP then return end
 
-    local teamInfo = B2CTF_MAP.teams[self:Team()]
-    if not teamInfo then return end
+    for _, ply in ipairs( player.GetAll() ) do
+        if not ( ply and IsValid( ply ) ) then continue end -- glua implements continue lol
+        if not ply:TeamValid() then continue end -- ignores connecting, spectator etc.
+        local teamInfo = B2CTF_MAP.teams[ply:Team()]
+        assert(teamInfo, "failed to get team info") -- this must be an error
 
-    return self:GetPos():WithinAABox(teamInfo.boundaries[1], teamInfo.boundaries[2])
-end
+        ply:_setAtHome(
+            ply:GetPos():WithinAABox(teamInfo.boundaries[1], teamInfo.boundaries[2]) -- <- the heavy stuff
+        )
+
+    end
+
+end)
 
 -- Override Add count, used for entity owner tracking
 -- inspiration taken from https://github.com/FPtje/Falcos-Prop-protection/blob/master/lua/fpp/server/core.lua
