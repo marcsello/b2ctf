@@ -179,6 +179,7 @@ elseif SERVER then
 
     net.Receive("B2CTF_PhaseRequestUpdate", function( len, ply )
         if ply and IsValid(ply) then
+            -- TODO: Maybe implement a timeout, to prevent self-dos-amplification
             Phaser:_sendPhaseToPlayer(ply)
         end
     end )

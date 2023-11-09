@@ -19,7 +19,7 @@ local NET_FLAG_ID_LEN = 4 -- More than 15 teams will break this
 
 local FLAG_GRAB_DISTANCE = 2300
 
-FlagManager = FlagManager or { -- prevent re-creating the whole object on
+FlagManager = FlagManager or { -- prevent re-creating the whole object on reload
     flags = {}
 }
 
@@ -339,6 +339,7 @@ if SERVER then
 
     net.Receive("B2CTF_FlagRequestSync", function( len, ply )
         if ply and IsValid(ply) then
+            -- TODO: Maybe implement a timeout, to prevent self-dos-amplification
             FlagManager:_sendFullSyncToPlayer(ply)
         end
     end )
