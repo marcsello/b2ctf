@@ -44,7 +44,7 @@ function FlagManager:Reset() -- Reset is not synced manually, make sure that all
 end
 
 function FlagManager:FlagIDValid(flagID)
-    return self.flags[flagID] != nil
+    return self.flags[flagID] ~= nil
 end
 
 function FlagManager:IterFlags()
@@ -208,9 +208,9 @@ if SERVER then
         -- So we only need to send the three important fields for each flag
         net.Start("B2CTF_FlagFullSync")
         for i, v in ipairs(self.flags) do
-            local grabbedBySet = v.grabbedBy != nil
-            local droppedPosSet = v.droppedPos != nil
-            local droppedTsSet = v.droppedTs != nil
+            local grabbedBySet = v.grabbedBy ~= nil
+            local droppedPosSet = v.droppedPos ~= nil
+            local droppedTsSet = v.droppedTs ~= nil
             -- first, send what's set
             net.WriteBool(grabbedBySet)
             net.WriteBool(droppedPosSet)
@@ -265,7 +265,7 @@ if SERVER then
 
         if interactionFlagID then -- the player is interacting with a flag
 
-            if (not playerCarryingFlagID) and (interactionFlagID != ply:Team()) then
+            if (not playerCarryingFlagID) and (interactionFlagID ~= ply:Team()) then
                 -- the player not carrying flag, and this is not own flag... possibly taking a flag
                 self:GrabFlag(interactionFlagID, ply, interactionFlagDropped)
                 return -- only handle one action per tick, so that handles can correctly process

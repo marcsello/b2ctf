@@ -103,7 +103,7 @@ end
 
 function Phaser:_update(newPhaseID, startTime, endTime, isReset)
     local oldPhaseId = self.current_phase_id
-    local changed = oldPhaseId != newPhaseID
+    local changed = oldPhaseId ~= newPhaseID
 
     self.current_phase_id = newPhaseID
     self.start_time = startTime

@@ -14,7 +14,7 @@ timer.Create("B2CTF_SlowUpdateHUDValues", 0.2, 0, function()
     atHome = LocalPlayer():AtHome()
     teamID = LocalPlayer():Team()
     teamIDValid = FlagManager:FlagIDValid(teamID)
-    grabbedAnyFlag = FlagManager:GetFlagIDGrabbedByTeam(teamID) != nil
+    grabbedAnyFlag = FlagManager:GetFlagIDGrabbedByTeam(teamID) ~= nil
 end)
 
 
