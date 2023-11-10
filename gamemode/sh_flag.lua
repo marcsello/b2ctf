@@ -173,7 +173,7 @@ function FlagManager:CaptureFlag(flagID, capturedBy) -- flagID is the ID of the 
     local teamName = team.GetName(flagID)
     local capturerTeamID = capturedBy:Team()
     local capturerTeamName = team.GetName(capturerTeamID)
-    print("The flag of " .. teamName .. " is was captured by " .. capturedBy:Nick() .. " (score to team " .. capturerTeamName .. ")")
+    print("The flag of " .. teamName .. " was captured by " .. capturedBy:Nick() .. " (score to team " .. capturerTeamName .. ")")
     team.AddScore(capturerTeamID, 1)
 
     hook.Run("B2CTF_FlagCaptured", flagID, capturerTeamID, capturedBy) -- flagID / flag's teamID, capturing team's teamID, capturer

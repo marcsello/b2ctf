@@ -10,6 +10,8 @@ if SERVER then
 end
 
 function meta:B2CTFSetCreator(ply --[[=Player]])
+    if self._b2ctf_creator == ply then return end -- don't need to update if already set to the correct value
+
     self._b2ctf_creator = ply
     -- b2ctf creator property is used for two things: homesick props, and the builtin prop protection
 
@@ -43,6 +45,22 @@ if CLIENT then
             end
         end )
 
+    end )
+end
+
+if SERVER then
+    -- initial sync
+    -- TODO: optimize!
+    hook.Add("PlayerInitialSpawn", "B2CTF_SendInitialEntityOwners", function(ply)
+        for _, ent in ipairs(ents.GetAll()) do -- TODO: Replace with ents.Iterator() when released
+            local creator = ent:B2CTFGetCreator()
+            if creator and IsValid(creator) and creator:IsPlayer() and IsValid(ent) then
+                net.Start("B2CTF_CreatorSync")
+                    net.WriteUInt( ent:EntIndex(), MAX_EDICT_BITS )
+                    net.WriteEntity(creator)
+                net.Send( ply )
+            end
+        end
     end )
 end
 

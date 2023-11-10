@@ -74,7 +74,7 @@ local function reassignStuff(ply, teamID)
 	if newPly then
 		-- found someone to have stuff reassigned to
 		local anythingReassigned = false
-		for _, v in ipairs(ents.GetAll()) do
+		for _, v in ipairs(ents.GetAll()) do -- TODO: Replace with ents.Iterator() when released
 			if v:B2CTFGetCreator() == ply then
 				v:B2CTFSetCreator(newPly)
 
@@ -91,7 +91,7 @@ local function reassignStuff(ply, teamID)
 	else
 		-- no players left in team, remove player's stuff
 		local anythingRemoved = false
-		for _, v in ipairs(ents.GetAll()) do
+		for _, v in ipairs(ents.GetAll()) do -- TODO: Replace with ents.Iterator() when released
 			if v:B2CTFGetCreator() == ply then
 				v:Remove()
 				anythingRemoved = true
