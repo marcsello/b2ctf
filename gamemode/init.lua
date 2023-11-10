@@ -107,10 +107,29 @@ local function reassignStuff(ply, teamID)
 	end
 end
 
+local function resetTeamScoreIfThisWasTheLastPlayer(ply, teamID)
+    if not (teamID ~= nil and teamID > 0 and teamID < 1000 and team.Valid(teamID)) then return end -- it is possible that the team info lost when the player disconnects
+
+    local players = team.GetPlayers(teamID)
+    local cnt = #players
+    if table.HasValue(players, ply) then
+        cnt = cnt -1
+    end
+
+    if cnt <= 0 and team.GetScore(teamID) ~= 0 then
+        local msg = ply:Nick() .. " was the last member of " .. team.GetName(teamID) .. " team. Resetting team score."
+        print(msg)
+        PrintMessage(HUD_PRINTTALK, msg)
+        team.SetScore(teamID, 0)
+    end
+
+end
+
 hook.Add("PlayerChangedTeam", "B2CTF_ReassignCreatedEntsOnTeamChange", function(ply, oldTeam, newTeam)
-		if not (ply and IsValid(ply) and ply:TeamValid()) then return end
-		if oldTeam < 1 or oldTeam > 1000 or (not team.Valid(oldTeam)) then return end
-		reassignStuff(ply, oldTeam)
+        if not (ply and IsValid(ply) and ply:TeamValid()) then return end
+        if oldTeam < 1 or oldTeam > 1000 or (not team.Valid(oldTeam)) then return end
+        reassignStuff(ply, oldTeam)
+        resetTeamScoreIfThisWasTheLastPlayer(ply, oldTeam)
 end )
 
 hook.Add("PlayerDisconnected", "B2CTF_ReassignCreatedEntsOnLeaveOrCleanup", function(ply)
@@ -121,6 +140,7 @@ hook.Add("PlayerDisconnected", "B2CTF_ReassignCreatedEntsOnLeaveOrCleanup", func
             GAMEMODE:ResetGame()
         else
             reassignStuff(ply, ply:Team())
+            resetTeamScoreIfThisWasTheLastPlayer(ply, ply:Team())
         end
 end )
 
