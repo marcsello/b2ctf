@@ -57,6 +57,13 @@ timer.Create("B2CTF_SlowUpdateAtHome", 0.25, 0, function()
 
 end)
 
+hook.Add( "PlayerSpawn", "B2CTF_UpdateAtHomeOnSpawn", function(ply)
+    -- This is required because some hooks that run after spwan (Loadout for example)
+    -- would wrongly assume that the player is not at home, because the slow update timer haven't ran yet
+    -- PlayerSpawn hook is called before the Loadout hook,
+    ply:_setAtHome(true) -- They usually spawn at home
+end )
+
 -- Override Add count, used for entity owner tracking
 -- inspiration taken from https://github.com/FPtje/Falcos-Prop-protection/blob/master/lua/fpp/server/core.lua
 if meta.AddCount then

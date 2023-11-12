@@ -164,6 +164,7 @@ hook.Add("B2CTF_PhaseChanged", "AddOrRemoveSandboxWeapons", function(newPhaseID,
 end)
 
 function GM:PlayerLoadout( ply )
+    -- Called after PlayerSpawn hook
     if not ply:TeamValid() then return true end -- spectators don't have a loadout
 
     ply:Give( "weapon_pistol" )
