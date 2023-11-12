@@ -56,7 +56,7 @@ function GM:ResetGame()
 end
 
 -- What to do when user leaves
-local function reassignStuff(ply, teamID)
+local function reassignStuff(ply, teamID, plyLeft)
 	local playersLeftInTeam = team.GetPlayers(teamID)
 	local teamName = team.GetName(teamID)
 	local newPly = nil
@@ -101,10 +101,20 @@ local function reassignStuff(ply, teamID)
 		if anythingRemoved then msg = ply:Nick() .. " was the last player in team " .. teamName .. ". Removed all their stuff!" end
 	end
 
-	if msg then
-		PrintMessage(HUD_PRINTTALK, msg)
-		print(msg) -- server console too
-	end
+    -- clean player's undo and cleanup lists
+    if not plyLeft then
+        local plyUID = ply:UniqueID()
+        cleanup.GetList()[plyUID] = {}
+        undo.GetTable()[plyUID] = {}
+        -- There isn't really a nice way to do this, and I'm lazy to setup a network thingy for that
+        -- And Gmod source uses this pretty often
+        ply:SendLua("table.Empty(undo.GetTable()) undo.MakeUIDirty()")
+    end
+
+    if msg then
+        PrintMessage(HUD_PRINTTALK, msg)
+        print(msg) -- server console too
+    end
 end
 
 local function resetTeamScoreIfThisWasTheLastPlayer(ply, teamID)
@@ -128,7 +138,7 @@ end
 hook.Add("PlayerChangedTeam", "B2CTF_ReassignCreatedEntsOnTeamChange", function(ply, oldTeam, newTeam)
         if not (ply and IsValid(ply) and ply:TeamValid()) then return end
         if oldTeam < 1 or oldTeam > 1000 or (not team.Valid(oldTeam)) then return end
-        reassignStuff(ply, oldTeam)
+        reassignStuff(ply, oldTeam, false)
         resetTeamScoreIfThisWasTheLastPlayer(ply, oldTeam)
 end )
 
@@ -139,7 +149,7 @@ hook.Add("PlayerDisconnected", "B2CTF_ReassignCreatedEntsOnLeaveOrCleanup", func
             print("Last player disconnected, resetting game...")
             GAMEMODE:ResetGame()
         else
-            reassignStuff(ply, ply:Team())
+            reassignStuff(ply, ply:Team(), true)
             resetTeamScoreIfThisWasTheLastPlayer(ply, ply:Team())
         end
 end )
