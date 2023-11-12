@@ -1,12 +1,14 @@
 -- Console commands
 
-local function resetGame()
+local function resetGame( ply )
+    if not ((not ply:IsValid()) or (ply:IsAdmin())) then return end
     print("Resetting game...")
     GAMEMODE:ResetGame()
 end
 concommand.Add("b2ctf_reset_game", resetGame, nil, "Clanup map, reset phase and force all players to choose team again", 0)
 
-local function forceNextPhase()
+local function forceNextPhase( ply )
+    if not ((not ply:IsValid()) or (ply:IsAdmin())) then return end
     print("Manually advancing phase")
     Phaser:ForceNext()
 end
@@ -14,6 +16,8 @@ end
 concommand.Add("b2ctf_force_next_phase", forceNextPhase, nil, "Force changing to the next phase", 0)
 
 local function forcePlayerInTeam(ply, cmd, args) -- there may be admin addons that implement this already, but I needed this for debugging
+    if not ((not ply:IsValid()) or (ply:IsAdmin())) then return end
+
     if args[1] == nil or args[2] == nil then
         print("Usage: b2ctf_force_player_in_team <player> <team>")
         return
