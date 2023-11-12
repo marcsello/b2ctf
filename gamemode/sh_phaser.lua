@@ -15,7 +15,7 @@ GAME_PHASE_PREBUILD = 1
 GAME_PHASE_BUILD = 2
 GAME_PHASE_PREWAR = 3
 GAME_PHASE_WAR = 4
--- don't forget to update network bytes when adding more than 7
+-- don't forget to update network bytes when adding more than 4
 
 GAME_PHASE_INFO = {
     [GAME_PHASE_PREBUILD] = {
@@ -24,6 +24,7 @@ GAME_PHASE_INFO = {
         buildAllowed = false, -- Spawn menu works, players have toolgun and physgun
         fightAllowed = false, -- 
         homeSickness = false, -- Players hurt when leaving the site, also brought back on phase change, props also break that wander around
+        rdySkippable = true, -- Allows the pahse to be skipped by all players being ready
     },
     [GAME_PHASE_BUILD] = {
         time = buildTimeConvar:GetInt(),
@@ -31,6 +32,7 @@ GAME_PHASE_INFO = {
         buildAllowed = true,
         fightAllowed = false,
         homeSickness = true,
+        rdySkippable = false,
     },
     [GAME_PHASE_PREWAR] = {
         time = preWarTimeConvar:GetInt(),
@@ -38,6 +40,7 @@ GAME_PHASE_INFO = {
         buildAllowed = false,
         fightAllowed = false,
         homeSickness = true,
+        rdySkippable = true,
     },
     [GAME_PHASE_WAR] = {
         time = warTimeConvar:GetInt(),
@@ -45,6 +48,7 @@ GAME_PHASE_INFO = {
         buildAllowed = false,
         fightAllowed = true,
         homeSickness = false,
+        rdySkippable = false,
     }
 }
 
@@ -128,7 +132,7 @@ end
 
 function Phaser:_prepareUpdateMessage(isReset)
     net.Start("B2CTF_PhaseUpdate")
-    net.WriteUInt(self.current_phase_id, 3)
+    net.WriteUInt(self.current_phase_id-1, 2)  -- 1-4 -> 1-3 only requires 2 bits
     net.WriteBool(isReset)
     net.WriteDouble(self.start_time)
     net.WriteDouble(self.end_time)
@@ -161,7 +165,7 @@ end
 if CLIENT then -- setup listener for client only
     net.Receive("B2CTF_PhaseUpdate", function( len, ply )
         if ( IsValid( ply ) and ply:IsPlayer() ) then return end -- disallow these messages from players
-        local newPhaseID = net.ReadUInt(3)
+        local newPhaseID = net.ReadUInt(2) + 1
         local isReset = net.ReadBool()
         local startTime = net.ReadDouble()
         local endTime = net.ReadDouble()
