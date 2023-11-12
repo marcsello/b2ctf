@@ -267,6 +267,10 @@ if SERVER then
 
             if (not playerCarryingFlagID) and (interactionFlagID ~= ply:Team()) then
                 -- the player not carrying flag, and this is not own flag... possibly taking a flag
+
+                if (not interactionFlagDropped) and (team.NumPlayers(interactionFlagID) == 0) then return end -- prevent taking a flag from an enemy site, when there are no enemy
+                -- we only disallow taking from site, so the other team can not prevent flag capturing by rage-quitting the game.
+
                 self:GrabFlag(interactionFlagID, ply, interactionFlagDropped)
                 return -- only handle one action per tick, so that handles can correctly process
             end

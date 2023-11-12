@@ -50,6 +50,11 @@ local function updateFlagEnts()
 
     for i, v in FlagManager:IterFlags() do
 
+        -- If a team does not have members, then don't render their flag
+        local teamHaveMembers = team.NumPlayers(i) ~= 0
+        entsForFlag[i].flagEnt:SetNoDraw(not teamHaveMembers)
+        if not teamHaveMembers then continue end
+
         -- check if grabbed, if so, then attach it to the player
         if v.grabbedBy then
             local ply = v.grabbedBy
