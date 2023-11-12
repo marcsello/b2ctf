@@ -1,9 +1,16 @@
 -- Flag rendering magic
 if not B2CTF_MAP then return end -- flags rely heavily on map data. If map data is missing the game would be broken anyways
-entsForFlag = entsForFlag or {} -- prevent losing references on reload (this is why it's global, so we won't loose reference to it)
 
 -- WARNING! This file is included IN sh_flag.lua, only the basic structure of FlagManager is present, but it is probably not filled with valid data
 -- Do not do any initialization outside the hoooooks  
+
+local useBuiltinFlagRendering = CreateConVar("b2ctf_use_builtin_flag_rendering", "1", FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Use builtin flag rendering")
+if not useBuiltinFlagRendering:GetBool() then
+    print("B2CTF Builtin flag rendering is disabled")
+    return
+end
+
+entsForFlag = entsForFlag or {} -- prevent losing references on reload (this is why it's global, so we won't loose reference to it)
 
 local function initEnts(flags)
     -- Remove "old" flag entities

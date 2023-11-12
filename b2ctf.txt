@@ -60,6 +60,15 @@
 			"type"		"CheckBox"
 			"default"	"1"
 		}
+
+		7
+		{
+			"name"		"b2ctf_use_builtin_flag_rendering"
+			"text"		"Use builtin flag rendering"
+			"help"		"Enable the built-in default client-side flag rendering. Disable it to use addons that hook into the gamemode and draw custom flags. (on-the-fly change not supported)"
+			"type"		"CheckBox"
+			"default"	"1"
+		}
     }
 
 }
