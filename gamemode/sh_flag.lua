@@ -24,7 +24,7 @@ FlagManager = FlagManager or { -- prevent re-creating the whole object on reload
 }
 
 function FlagManager:Reset() -- Reset is not synced manually, make sure that all hooks that call it are called on both client and server side
-    if self.flags then
+    if #self.flags ~= 0 then -- flags were defined before
         hook.Run("B2CTF_FlagManagerPreReset", self.flags)
     end
 
