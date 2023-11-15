@@ -18,7 +18,7 @@ AddCSLuaFile("sh_sandbox.lua") -- Included by sandbox.lua and cl_sandbox.lua
 
 -- If there is a mapfile send it to the client (we define b2ctf specific settings here)
 if file.Exists("b2ctf/gamemode/maps/" .. game.GetMap() .. ".lua", "LUA") then
-	AddCSLuaFile("maps/" .. game.GetMap() .. ".lua")
+    AddCSLuaFile("maps/" .. game.GetMap() .. ".lua")
 end
 
 -- Run other server-side scripts
@@ -58,35 +58,35 @@ end
 
 -- What to do when user leaves
 local function reassignStuff(ply, teamID, isPlyLeftTheGame)
-	local playersLeftInTeam = team.GetPlayers(teamID)
-	local teamName = team.GetName(teamID)
-	local newPly = nil
+    local playersLeftInTeam = team.GetPlayers(teamID)
+    local teamName = team.GetName(teamID)
+    local newPly = nil
 
-	if playersLeftInTeam and #playersLeftInTeam > 0 then
-		for _, p in ipairs(playersLeftInTeam) do
-			-- This hook is called before the actual team change, so it is possible, that the player is still assigned to their old team
-			if p ~= ply then -- ignore self
-				newPly = p -- TODO: Randomize?
-			end
-		end
-	end
+    if playersLeftInTeam and #playersLeftInTeam > 0 then
+        for _, p in ipairs(playersLeftInTeam) do
+            -- This hook is called before the actual team change, so it is possible, that the player is still assigned to their old team
+            if p ~= ply then -- ignore self
+                newPly = p -- TODO: Randomize?
+            end
+        end
+    end
 
-	local msg = nil
-	if newPly and IsValid(newPly) then
-		-- found someone to have stuff reassigned to
-		local anythingReassigned = false
-		for _, v in ipairs(ents.GetAll()) do -- TODO: Replace with ents.Iterator() when released
-			if v:B2CTFGetCreator() == ply then
-				v:B2CTFSetCreator(newPly)
+    local msg = nil
+    if newPly and IsValid(newPly) then
+        -- found someone to have stuff reassigned to
+        local anythingReassigned = false
+        for _, v in ipairs(ents.GetAll()) do -- TODO: Replace with ents.Iterator() when released
+            if v:B2CTFGetCreator() == ply then
+                v:B2CTFSetCreator(newPly)
 
-				if v.GetCreator and v:GetCreator() then
-					-- Support changing gmod side stuff as well
-					v.SetCreator(newPly)
-				end
+                if v.GetCreator and v:GetCreator() then
+                    -- Support changing gmod side stuff as well
+                    v.SetCreator(newPly)
+                end
 
-				anythingReassigned = true
-			end
-		end
+                anythingReassigned = true
+            end
+        end
 
         -- clean player's undo list if they changed teams, and their stuff got re-assigned
         -- If their stuff is not getting re-assigned then it is going to be deleted anyway 
@@ -118,19 +118,19 @@ local function reassignStuff(ply, teamID, isPlyLeftTheGame)
         end
         cleanup.GetList()[plyUID] = {} -- clean old list
 
-		if anythingReassigned then msg = ply:Nick() .. " has left team " .. teamName .. ". Their stuff is reassigned to " .. newPly:Nick() end
-	else
-		-- no players left in team, remove player's stuff
-		local anythingRemoved = false
-		for _, v in ipairs(ents.GetAll()) do -- TODO: Replace with ents.Iterator() when released
-			if v:B2CTFGetCreator() == ply then
-				v:Remove()
-				anythingRemoved = true
-			end
-		end
+        if anythingReassigned then msg = ply:Nick() .. " has left team " .. teamName .. ". Their stuff is reassigned to " .. newPly:Nick() end
+    else
+        -- no players left in team, remove player's stuff
+        local anythingRemoved = false
+        for _, v in ipairs(ents.GetAll()) do -- TODO: Replace with ents.Iterator() when released
+            if v:B2CTFGetCreator() == ply then
+                v:Remove()
+                anythingRemoved = true
+            end
+        end
 
-		if anythingRemoved then msg = ply:Nick() .. " was the last player in team " .. teamName .. ". Removed all their stuff!" end
-	end
+        if anythingRemoved then msg = ply:Nick() .. " was the last player in team " .. teamName .. ". Removed all their stuff!" end
+    end
 
     if msg then
         PrintMessage(HUD_PRINTTALK, msg)
