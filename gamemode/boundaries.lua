@@ -115,3 +115,36 @@ hook.Add("B2CTF_PhaseChanged", "ResetHomeSickEntities", function(newPhaseID, new
         end
     end
 end )
+
+-- prevent spawning entities outside boundaries
+local function denySpawningOutsideBoundaries(ply, ...)
+    if (not IsValid(ply)) or (not ply:TeamValid()) then return end
+
+    local teamInfo = B2CTF_MAP.teams[ply:Team()]
+    assert(teamInfo, "failed to get team info") -- this must be an error
+
+    -- This is the same code gmod uses to decide where to spawn
+    -- https://github.com/Facepunch/garrysmod/blob/ae8febe129c3d417e002c0b969340e5a354e7c62/garrysmod/gamemodes/sandbox/gamemode/commands.lua#L291-L299
+    local vStart = ply:GetShootPos()
+    local vForward = ply:GetAimVector()
+
+    local trace = {}
+    trace.start = vStart
+    trace.endpos = vStart + ( vForward * 2048 )
+    trace.filter = ply
+
+    local tr = util.TraceLine( trace )
+    if not tr.HitPos:WithinAABox(teamInfo.boundaries[1], teamInfo.boundaries[2]) then
+        return false
+    end
+end
+
+
+hook.Add("PlayerSpawnEffect", "B2CTF_PreventSpawningOutOfBounds", denySpawningOutsideBoundaries)
+hook.Add("PlayerSpawnNPC", "B2CTF_PreventSpawningOutOfBounds", denySpawningOutsideBoundaries)
+hook.Add("PlayerSpawnObject", "B2CTF_PreventSpawningOutOfBounds", denySpawningOutsideBoundaries)
+hook.Add("PlayerSpawnProp", "B2CTF_PreventSpawningOutOfBounds", denySpawningOutsideBoundaries)
+hook.Add("PlayerSpawnRagdoll", "B2CTF_PreventSpawningOutOfBounds", denySpawningOutsideBoundaries)
+hook.Add("PlayerSpawnSENT", "B2CTF_PreventSpawningOutOfBounds", denySpawningOutsideBoundaries)
+hook.Add("PlayerSpawnSWEP", "B2CTF_PreventSpawningOutOfBounds", denySpawningOutsideBoundaries)
+hook.Add("PlayerSpawnVehicle", "B2CTF_PreventSpawningOutOfBounds", denySpawningOutsideBoundaries)
