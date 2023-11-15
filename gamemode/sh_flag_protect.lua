@@ -18,7 +18,9 @@ function flagPushawayThink(flagID)
     local flagPos = protectPos[flagID]
     local violatingEnts = ents.FindInSphere( flagPos, FLAG_PROTECT_RADIUS ) -- fun fact: the actual radius will be little bigger than defined here
     for i, ent in ipairs(violatingEnts) do -- this is a lot of entities
-        local creator = ent:B2CTFGetCreator() -- only apply on props that have a valid creator (could be a problem if players could manipulate world entities)
+        if not IsValid(ent) then continue end
+        if ent:IsPlayer() then continue end -- ignore players only
+        local creator = ent:B2CTFGetCreator() -- only apply on ents that have a valid creator (could be a problem if players could manipulate world entities)
         if not creator then continue end
         if ent._b2ctf_flag_protect_remove_started then continue end -- don't care if it's already being removed
 
