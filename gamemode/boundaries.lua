@@ -1,6 +1,8 @@
 -- Team site related restrictions
 local outOfBoundsWarningColor = Color(255, 0, 0)
 
+local HOMESICK_ENTITY_REMOVE_TIMEOUT = 3 -- sec
+
 hook.Add("B2CTF_PhaseChanged", "BringBackPlayersWhenHomeSick", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
     if ((not oldPhaseID) or (not oldPhaseInfo.homeSickness)) and newPhaseInfo.homeSickness then -- Bring them home only if they were allowed to go out in the previous phase
         for _, v in ipairs( player.GetAll() ) do
@@ -72,32 +74,10 @@ local function homeSickProcessEnt(ent --[[=Entity ]])
             if (ent._b2ctf_homesick_remove_at < CurTime()) and (not ent._b2ctf_homesick_remove_started) then
                 -- the point of no return
                 ent._b2ctf_homesick_remove_started = true
-
-                ent:SetColor(color_black) -- it's like burning, or something...
-
-                constraint.RemoveAll( ent ) -- remove all constraints, like ropes and stuff
-
-                -- "freeze" and "no-collide" the prop
-                ent:SetNotSolid( true )
-                ent:SetMoveType( MOVETYPE_NONE )
-
-                -- show some effect
-                local ed = EffectData()
-                ed:SetEntity( ent )
-                ed:SetOrigin(ent:GetPos())
-                ed:SetScale(1.5)
-                util.Effect( "entity_remove", ed, true, true )
-
-                -- actually remove the entity later
-                timer.Simple(0.3, function()
-                    if IsValid(ent) then
-                        ent:Remove()
-                    end
-                end)
-
+                ent:TheatralRemoval()
             end
         else
-            ent._b2ctf_homesick_remove_at = CurTime() + 3
+            ent._b2ctf_homesick_remove_at = CurTime() + HOMESICK_ENTITY_REMOVE_TIMEOUT
             ent._b2ctf_homesick_orig_color = ent:GetColor()
             ent:SetColor(outOfBoundsWarningColor)
         end

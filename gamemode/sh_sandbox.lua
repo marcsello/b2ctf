@@ -1,7 +1,6 @@
 -- Shared stuff for sandbox restrictions. Included at the end of sandbox.lua and cl_sandbox.lua NOT shared.lua
 
 -- Deny sandbox functions when not building
--- This function is copied to the server file
 local function denyWhenNotBuilding(ply, ...)
     if (not IsValid(ply)) or (not ply:TeamValid()) then return false end
     if not ply:CurrentlyBuilding() then

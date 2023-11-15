@@ -76,3 +76,37 @@ if origEntSetCreator then
         origEntSetCreator(self, ply)
     end
 end
+
+
+if SERVER then
+
+    function meta:TheatralRemoval()
+        -- Used to remove stuff in a clearly visible way. Make sure you don't try to use the entity after calling this
+
+        if self._theatral_removal_started then return end
+        self._theatral_removal_started = true
+
+        self:SetColor(color_black) -- it's like burning, or something...
+
+        constraint.RemoveAll( self ) -- remove all constraints, like ropes and stuff
+
+        -- "freeze" and "no-collide" the prop
+        self:SetNotSolid( true )
+        self:SetMoveType( MOVETYPE_NONE )
+
+        -- show some effect
+        local ed = EffectData()
+        ed:SetEntity( self )
+        ed:SetOrigin(self:GetPos())
+        ed:SetScale(1.5)
+        util.Effect( "entity_remove", ed, true, true )
+
+        -- actually remove the entity later
+        timer.Simple(0.2, function()
+            if IsValid(self) then
+                self:Remove()
+            end
+        end)
+    end
+
+end

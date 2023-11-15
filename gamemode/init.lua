@@ -12,6 +12,7 @@ AddCSLuaFile("sh_protect.lua")
 AddCSLuaFile("sh_flag.lua")
 AddCSLuaFile("cl_flag.lua")
 AddCSLuaFile("cl_limits.lua")
+AddCSLuaFile("sh_flag_protect.lua")
 AddCSLuaFile("sh_sandbox.lua") -- Included by sandbox.lua and cl_sandbox.lua
 
 

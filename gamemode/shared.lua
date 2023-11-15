@@ -28,6 +28,7 @@ end
 -- Include the remaining shared scripts
 include("sh_protect.lua")
 include("sh_flag.lua")
+include("sh_flag_protect.lua")
 
 
 
