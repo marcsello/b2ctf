@@ -57,7 +57,7 @@ function GM:ResetGame()
 end
 
 -- What to do when user leaves
-local function reassignStuff(ply, teamID, plyLeft)
+local function reassignStuff(ply, teamID, isPlyLeftTheGame)
 	local playersLeftInTeam = team.GetPlayers(teamID)
 	local teamName = team.GetName(teamID)
 	local newPly = nil
@@ -72,7 +72,7 @@ local function reassignStuff(ply, teamID, plyLeft)
 	end
 
 	local msg = nil
-	if newPly then
+	if newPly and IsValid(newPly) then
 		-- found someone to have stuff reassigned to
 		local anythingReassigned = false
 		for _, v in ipairs(ents.GetAll()) do -- TODO: Replace with ents.Iterator() when released
@@ -88,6 +88,36 @@ local function reassignStuff(ply, teamID, plyLeft)
 			end
 		end
 
+        -- clean player's undo list if they changed teams, and their stuff got re-assigned
+        -- If their stuff is not getting re-assigned then it is going to be deleted anyway 
+        -- so we don't care about the undo list in that case
+        local plyUID = ply:UniqueID() -- the id if the player who left the team
+        if not isPlyLeftTheGame then
+            undo.GetTable()[plyUID] = {}
+            -- There isn't really a nice way to do this, and I'm lazy to setup a network thingy for that
+            -- And Gmod source uses this pretty often
+            ply:SendLua("table.Empty(undo.GetTable()) undo.MakeUIDirty()")
+        end
+
+        -- copy items from the players cleanup list to the new players cleanup list
+        -- so when they press clean up everything, their newly assigned props will be cleaned up as well
+        local cleanupListToBeReassigned = cleanup.GetList()[plyUID]
+        local newPlyUID = newPly:UniqueID()
+        if not cleanup.GetList()[newPlyUID] then
+            cleanup.GetList()[newPlyUID] = {}
+        end
+        for undoType, undoList in pairs(cleanupListToBeReassigned) do
+            if not cleanup.GetList()[newPlyUID][undoType] then
+                cleanup.GetList()[newPlyUID][undoType] = {}
+            end
+            for _, undoItem in ipairs(undoList) do
+                if IsValid(undoItem) then -- sometimes when the entites are removed they are not cleaned up from the cleanup list, prevent cluttering the new player's cleanup list with those
+                    table.insert(cleanup.GetList()[newPlyUID][undoType], undoItem)
+                end
+            end
+        end
+        cleanup.GetList()[plyUID] = {} -- clean old list
+
 		if anythingReassigned then msg = ply:Nick() .. " has left team " .. teamName .. ". Their stuff is reassigned to " .. newPly:Nick() end
 	else
 		-- no players left in team, remove player's stuff
@@ -101,16 +131,6 @@ local function reassignStuff(ply, teamID, plyLeft)
 
 		if anythingRemoved then msg = ply:Nick() .. " was the last player in team " .. teamName .. ". Removed all their stuff!" end
 	end
-
-    -- clean player's undo and cleanup lists
-    if not plyLeft then
-        local plyUID = ply:UniqueID()
-        cleanup.GetList()[plyUID] = {}
-        undo.GetTable()[plyUID] = {}
-        -- There isn't really a nice way to do this, and I'm lazy to setup a network thingy for that
-        -- And Gmod source uses this pretty often
-        ply:SendLua("table.Empty(undo.GetTable()) undo.MakeUIDirty()")
-    end
 
     if msg then
         PrintMessage(HUD_PRINTTALK, msg)
