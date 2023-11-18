@@ -29,6 +29,7 @@ include("boundaries.lua")
 include("entity.lua")
 include("cc.lua")
 include("limits.lua")
+include("ready.lua")
 
 function GM:ResetGame()
     -- Reset business logic

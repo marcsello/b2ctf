@@ -28,6 +28,43 @@ function meta:CurrentlyBuilding()
 
 end
 
+-- A very basic ready system's data layer
+-- It works only on server side
+
+local nw2PlayerReadyKey = "b2ctf_isReady"
+function meta:IsReady()
+    return self:GetNW2Bool( nw2PlayerReadyKey, false )
+end
+
+if SERVER then
+    -- Setters are available server-side only
+
+    function meta:SetReady(rdy)
+        -- currently we only allow changing ready state from the server.
+        -- This might be a changed later so that the code be extended by 3rd party addons to toggle ready state from client Lua
+
+        local oldState = self:IsReady()
+        if rdy == oldState then return end -- do nothing if it's not an actual change
+
+        local changeAllowed = hook.Run("B2CTF_PlayerCanChangeReadyState", self, oldState, rdy) -- called server side only
+        if changeAllowed == false then -- nil = don't care
+            -- do nothing if we are not allowed to do anything
+            return
+        end
+
+        self:SetNW2Bool( nw2PlayerReadyKey, rdy )
+
+        hook.Run("B2CTF_PlayerChangedReadyState", self, oldState, rdy) -- called on server side only
+    end
+
+    function meta:ClearReady()
+        -- this is a bit hacky solution... it does not call any handlers
+        -- used to reset the ready state on phase change
+        self:SetNW2Bool( nw2PlayerReadyKey, false )
+    end
+
+end
+
 -- We would like to cache AtHome, because it's slow to calculate and may be used multiple times per tick
 -- it also does not have to be that precise
 

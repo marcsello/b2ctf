@@ -69,6 +69,24 @@
 			"type"		"CheckBox"
 			"default"	"1"
 		}
+
+		8
+		{
+			"name"		"b2ctf_enable_player_ready"
+			"text"		"Allow players to skip a phase by stating that they are ready."
+			"help"		"Allow players to skip a phase by stating that they are ready. They can only skip pre and post war phases. Players can say !ready in the chat to toggle their ready state"
+			"type"		"CheckBox"
+			"default"	"1"
+		}
+
+		9
+		{
+			"name"		"b2ctf_enable_player_ready_by_spare2"
+			"text"		"Allow players to use Spare2 to toggle their ready state"
+			"help"		"Allow players to use Spare2 (default F4) to toggle their ready state"
+			"type"		"CheckBox"
+			"default"	"1"
+		}
     }
 
 }
