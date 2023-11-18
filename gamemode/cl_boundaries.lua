@@ -25,6 +25,9 @@ local function DrawHomeBoundaries(bDrawingDepth, bDrawingSkybox, isDraw3DSkybox)
     render.DrawLine(Vector(cubeMax.x, cubeMin.y, cubeMin.z), Vector(cubeMax.x, cubeMin.y, cubeMax.z), t.color, true)
     render.DrawLine(Vector(cubeMin.x, cubeMax.y, cubeMin.z), Vector(cubeMin.x, cubeMax.y, cubeMax.z), t.color, true)
     render.DrawLine(Vector(cubeMax.x, cubeMax.y, cubeMin.z), Vector(cubeMax.x, cubeMax.y, cubeMax.z), t.color, true)
+
+    render.SetColorMaterial()
+    render.DrawSphere(t.boundaries._center, 1, 10, 10, t.color)
 end
 
 hook.Add("PostDrawOpaqueRenderables", "B2CTF_DrawHomeBoundaries", DrawHomeBoundaries)

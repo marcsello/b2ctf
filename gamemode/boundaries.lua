@@ -2,6 +2,8 @@
 local outOfBoundsWarningColor = Color(255, 0, 0)
 
 local HOMESICK_ENTITY_REMOVE_TIMEOUT = 3 -- sec
+local HOMESICK_ENTITY_INSTANT_DELETE_DISTANCE = 4000 -- sqr units, if an entity goes beyond this distance from the (base's center + base's diameter), it will be deleted immediately
+local HOMESICK_ENTITY_PROCESS_BATCH_SIZE_PER_THINK = 5 -- run this many checks each think
 
 hook.Add("B2CTF_PhaseChanged", "BringBackPlayersWhenHomeSick", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
     if ((not oldPhaseID) or (not oldPhaseInfo.homeSickness)) and newPhaseInfo.homeSickness then -- Bring them home only if they were allowed to go out in the previous phase
@@ -54,6 +56,7 @@ end
 
 local function homeSickProcessEnt(ent --[[=Entity ]])
     if not (ent and IsValid(ent)) then return end
+    if ent._b2ctf_homesick_remove_started then return end -- do not process if it's being removed due to homesicknss
 
     local entCreator = ent:B2CTFGetCreator()
     if (not entCreator) or (not IsValid(entCreator)) or (not entCreator:IsPlayer()) or (not entCreator:TeamValid()) then return end
@@ -61,7 +64,9 @@ local function homeSickProcessEnt(ent --[[=Entity ]])
     local t = B2CTF_MAP.teams[entCreator:Team()]
     if t == nil then return end
 
-    if ent:GetPos():WithinAABox(t.boundaries[1], t.boundaries[2]) then
+    local entPos = ent:GetPos()
+
+    if entPos:WithinAABox(t.boundaries[1], t.boundaries[2]) then
         -- inside base
         if ent._b2ctf_homesick_remove_at then
             ent:SetColor(ent._b2ctf_homesick_orig_color or color_white)
@@ -71,12 +76,14 @@ local function homeSickProcessEnt(ent --[[=Entity ]])
     else
         -- outside base
         if ent._b2ctf_homesick_remove_at then
-            if (ent._b2ctf_homesick_remove_at < CurTime()) and (not ent._b2ctf_homesick_remove_started) then
+            local entDistSqr = t.boundaries._center:DistToSqr( entPos )
+            if (ent._b2ctf_homesick_remove_at < CurTime()) or (entDistSqr > (t.boundaries._sizeSqr + HOMESICK_ENTITY_INSTANT_DELETE_DISTANCE)) then
                 -- the point of no return
                 ent._b2ctf_homesick_remove_started = true
                 ent:TheatralRemoval()
             end
         else
+            -- just moved outside the base
             ent._b2ctf_homesick_remove_at = CurTime() + HOMESICK_ENTITY_REMOVE_TIMEOUT
             ent._b2ctf_homesick_orig_color = ent:GetColor()
             ent:SetColor(outOfBoundsWarningColor)
@@ -87,7 +94,7 @@ end
 hook.Add( "Think", "B2CTF_EntsAreHomeSickToo", function() -- Check only one entity each tick
     if not Phaser:CurrentPhaseInfo().homeSickness then return end
 
-    for _ = 1,5 do
+    for _ = 1, HOMESICK_ENTITY_PROCESS_BATCH_SIZE_PER_THINK do
         if (homeSickCheckI == nil) or (homeSickCheckEnts == nil) or (homeSickCheckI > #homeSickCheckEnts) then
             homeSickCheckEnts = findAllEntsPossiblyHomeSick()
             homeSickCheckI = 1

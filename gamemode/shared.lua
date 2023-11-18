@@ -25,6 +25,20 @@ else
     print("WARNING! Map " .. game.GetMap() .. " does not seem to have b2ctf config")
 end
 
+-- Calculate pre-calculated stuff
+-- TODO: Move this somewhere else?
+for i, teamData in ipairs(B2CTF_MAP.teams) do
+    local centerX = math.min(teamData.boundaries[1].x, teamData.boundaries[2].x) + math.abs(teamData.boundaries[1].x - teamData.boundaries[2].x) / 2
+    local centerY = math.min(teamData.boundaries[1].y, teamData.boundaries[2].y) + math.abs(teamData.boundaries[1].y - teamData.boundaries[2].y) / 2
+    local centerZ = math.min(teamData.boundaries[1].z, teamData.boundaries[2].z) + math.abs(teamData.boundaries[1].z - teamData.boundaries[2].z) / 2
+    local size = teamData.boundaries[1]:Distance( teamData.boundaries[2] )
+
+    -- make sure you never use pairs() on boundaries lol
+    B2CTF_MAP.teams[i].boundaries._center = Vector(centerX, centerY, centerZ)
+    B2CTF_MAP.teams[i].boundaries._size = size
+    B2CTF_MAP.teams[i].boundaries._sizeSqr = size^2
+end
+
 -- Include the remaining shared scripts
 include("sh_protect.lua")
 include("sh_flag.lua")
