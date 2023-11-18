@@ -13,7 +13,7 @@
 			"text"		"Pre-build phase time"
 			"help"		"The time for the pre-build phase in seconds (on-the-fly change not supported)"
 			"type"		"Numeric"
-			"default"	"30"
+			"default"	"90"
 		}
 
         2
@@ -31,7 +31,7 @@
 			"text"		"Pre-war phase time"
 			"help"		"The time for the pre-war phase in seconds (on-the-fly change not supported)"
 			"type"		"Numeric"
-			"default"	"60"
+			"default"	"45"
 		}
 
         4
