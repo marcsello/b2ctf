@@ -198,14 +198,26 @@ function GM:PlayerLoadout( ply )
     -- Called after PlayerSpawn hook
     if not ply:TeamValid() then return true end -- spectators don't have a loadout
 
-    ply:Give( "weapon_pistol" )
-    ply:Give( "weapon_crowbar" )
-    ply:Give( "weapon_shotgun" )
-    ply:Give( "weapon_smg1" )
-    ply:Give( "weapon_medkit" )
-    ply:Give( "weapon_physcannon" )
+    local buildAllowed = Phaser:CurrentPhaseInfo().buildAllowed
 
-    if Phaser:CurrentPhaseInfo().buildAllowed then
+    local overriden = hook.Run("B2CTF_PlayerLoadout", ply, buildAllowed) -- this is similar to PlayerLoadout hook except the toolgun/physgun/unfreezer are not should be added here
+
+    if overriden == nil then
+        -- no override: give "default" loadout
+        ply:Give("weapon_crowbar")
+        ply:Give("weapon_pistol")
+        ply:Give("item_ammo_pistol_large")
+        ply:Give("weapon_357")
+        ply:Give("item_ammo_357_large")
+        ply:Give("weapon_shotgun")
+        ply:Give("item_box_buckshot")
+        ply:Give("weapon_smg1")
+        ply:Give("item_ammo_smg1_large")
+        ply:Give("weapon_medkit")
+        ply:Give("weapon_physcannon")
+    end
+
+    if buildAllowed then
         -- give toolgun and physgun only when build is allowed
         ply:Give("gmod_tool")
         ply:Give("weapon_physgun")
