@@ -26,8 +26,23 @@ end )
 
 hook.Add("B2CTF_PhaseChanged", "CloseSandboxMenus", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
     if not newPhaseInfo.buildAllowed then
-        -- hide menu if building is not allowed in the new phase
-        RunConsoleCommand("-menu")
+        -- hide menu spawn and context menu if building is not allowed in the new phase (context menu can be re-opened later but with limited functionality)
+        g_ContextMenu:EndKeyFocus()
+        g_ContextMenu:Close()
+
+        g_SpawnMenu:EndKeyFocus()
+        g_SpawnMenu:Close()
+
+        -- The context menu can show the last tool used even without a toolgun, let's prevent it
+        -- TODO: Use ContextMenuShowTool hook, when it becomes GA https://wiki.facepunch.com/gmod/SANDBOX:ContextMenuShowTool
+        spawnmenu.SetActiveControlPanel(nil) -- this is internal, but seems working (sometimes crashes the game lol)
+
+        -- if we could not remove the control panel for some reason, we could still try to hide it
+        local panel = spawnmenu.ActiveControlPanel()
+        if panel and IsValid(panel) then
+            panel:SetVisible(false)
+        end
+        -- Sadly, this does not add back the tool menu to the context menu, when it is allowed to be used again... but whatever I don't care for now
     end
 end)
 
