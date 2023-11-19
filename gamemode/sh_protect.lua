@@ -1,9 +1,6 @@
 -- homebrew "prop protection"
-
-local useBuiltinProtectionConvar = CreateConVar("b2ctf_use_builtin_protection", "1", FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Use builtin protection")
-
-if not useBuiltinProtectionConvar:GetBool() then
-    print("B2CTF Builtin prop protection is disabled")
+if not Config.UseBuiltinProtection then
+    print("B2CTF Builtin protection is disabled")
     return
 end
 

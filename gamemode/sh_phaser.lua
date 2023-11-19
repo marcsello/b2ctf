@@ -4,12 +4,6 @@ if SERVER then
     util.AddNetworkString("B2CTF_PhaseRequestUpdate") -- sent by the client to request a sync
 end
 
--- Note: Don't forget to update these in the b2ctf.txt file as well
-local preBuildTimeConvar = CreateConVar("b2ctf_phase_time_prebuild", "30",   FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Pre-build phase time", 5)
-local buildTimeConvar    = CreateConVar("b2ctf_phase_time_build",    "3600", FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Build phase time", 5)
-local preWarTimeConvar   = CreateConVar("b2ctf_phase_time_prewar",   "60",   FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Pre-war phase time", 5)
-local warTimeConvar      = CreateConVar("b2ctf_phase_time_war",      "1800", FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "War phase time", 5)
-
 -- Setup some global vars, functions
 GAME_PHASE_PREBUILD = 1
 GAME_PHASE_BUILD = 2
@@ -19,7 +13,7 @@ GAME_PHASE_WAR = 4
 
 GAME_PHASE_INFO = {
     [GAME_PHASE_PREBUILD] = {
-        time = preBuildTimeConvar:GetInt(),
+        time = Config.PreBuildTime,
         name = "Intermezzo",
         buildAllowed = false, -- Spawn menu works, players have toolgun and physgun
         fightAllowed = false, -- 
@@ -27,7 +21,7 @@ GAME_PHASE_INFO = {
         rdySkippable = true, -- Allows the pahse to be skipped by all players being ready
     },
     [GAME_PHASE_BUILD] = {
-        time = buildTimeConvar:GetInt(),
+        time = Config.BuildTime,
         name = "Building",
         buildAllowed = true,
         fightAllowed = false,
@@ -35,7 +29,7 @@ GAME_PHASE_INFO = {
         rdySkippable = false,
     },
     [GAME_PHASE_PREWAR] = {
-        time = preWarTimeConvar:GetInt(),
+        time = Config.PreWarTime,
         name = "Prepare for war",
         buildAllowed = false,
         fightAllowed = false,
@@ -43,7 +37,7 @@ GAME_PHASE_INFO = {
         rdySkippable = true,
     },
     [GAME_PHASE_WAR] = {
-        time = warTimeConvar:GetInt(),
+        time = Config.WarTime,
         name = "War",
         buildAllowed = false,
         fightAllowed = true,

@@ -1,15 +1,13 @@
 -- This is the business logic for the very basic ready system
 -- It can be disabled to use a 3rd pary solution, or not use ready stuff at all
 
-local enablePlayerReady = CreateConVar("b2ctf_enable_player_ready", "1", FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Allow players to skip a phase by stating that they are ready.")
-if not enablePlayerReady:GetBool() then
+if not Config.EnablePlayerReady then
     return
 end
 print("Phase skipping by ready is enabled")
-local enablePlayerReadyBySpare2 = CreateConVar("b2ctf_enable_player_ready_by_spare2", "1", FCVAR_REPLICATED + FCVAR_NOT_CONNECTED, "Allow players to use Spare2 to toggle their ready state.")
 
 local helpText = "Type !ready in chat "
-if enablePlayerReadyBySpare2:GetBool() then
+if Config.EnablePlayerReadyBySpare2 then
     helpText = helpText .. "or press F4 "
 end
 helpText = helpText .. "to toggle your ready state."
@@ -88,7 +86,7 @@ hook.Add( "PlayerSay", "B2CTF_PlayerReadyByChat", function( ply, text )
 end )
 
 -- register Spare2 hook
-if enablePlayerReadyBySpare2:GetBool() then
+if Config.EnablePlayerReadyBySpare2 then
     hook.Add("ShowSpare2", "B2CTF_PlayerReadyBySpare2", function(ply)
         playerReadyToggle(ply)
     end )

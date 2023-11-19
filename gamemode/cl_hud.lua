@@ -1,8 +1,13 @@
 -- Draw all the custom HUD elements
 
+if not Config.UseBuiltinHUDRendering then
+    print("B2CTF Builtin HUD rendering is disabled")
+    return
+end
+
 local teamID = -1
 local teamIDValid = false
-local grabbedAnyFlag = false
+local teamGrabbedAnyFlag = false
 local iconSize = 32
 
 local homeSymbol = Material("models/wireframe")
@@ -18,7 +23,7 @@ timer.Create("B2CTF_SlowUpdateHUDValues", 0.2, 0, function()
     if not IsValid(LocalPlayer()) then return end
     teamID = LocalPlayer():Team() -- this is actually quick to read, but we want it to be consistent with other slow things
     teamIDValid = LocalPlayer():TeamValid() and FlagManager:FlagIDValid(teamID)
-    grabbedAnyFlag = FlagManager:GetFlagIDGrabbedByTeam(teamID) ~= nil
+    teamGrabbedAnyFlag = FlagManager:GetFlagIDGrabbedByTeam(teamID) ~= nil
 
     local lEnt = LocalPlayer():GetEyeTrace().Entity
     local lo = nil
@@ -95,7 +100,7 @@ local function DrawCustomHUD()
             surface.SetMaterial(homeSymbol)
             surface.DrawTexturedRect(10, 10 + (iconSize + 2) * 2, iconSize, iconSize)
         end
-        if grabbedAnyFlag then
+        if teamGrabbedAnyFlag then
             -- took someone's flag
             surface.SetDrawColor(B2CTF_MAP.teams[teamID].color)
             surface.SetMaterial(homeSymbol)

@@ -2,6 +2,7 @@ if CLIENT then return end
 
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
+AddCSLuaFile("sh_config.lua")
 AddCSLuaFile("sh_player.lua")
 AddCSLuaFile("cl_sandbox.lua")
 AddCSLuaFile("sh_phaser.lua")

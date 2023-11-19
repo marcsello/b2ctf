@@ -10,6 +10,7 @@ GM.ValidSpectatorModes = {OBS_MODE_CHASE, OBS_MODE_IN_EYE}
 DeriveGamemode("sandbox")
 
 -- Start loading shared scripts
+include("sh_config.lua") -- very important, global var holds all config
 
 include("sh_phaser.lua") -- this is used by utils, so it must preceed it
 
