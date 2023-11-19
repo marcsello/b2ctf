@@ -78,7 +78,7 @@ local function createConvarField(typ, name, default, serverOnly, allowOnTheFly, 
 end
 
 -- Now configure meta table, so we can access the config options as they were properties
-ConfigMeta = {
+local configMeta = {
     __index = function(table, key)
         local raws = rawget(table, "_raws")
         if not raws[key] then
@@ -100,7 +100,7 @@ ConfigMeta = {
 Config = { -- we create a new one every time, because otherwise we would run into already defiend errors
     _raws = {}
 }
-setmetatable(Config, ConfigMeta)
+setmetatable(Config, configMeta)
 
 
 -- Define some validators, 
