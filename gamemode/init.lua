@@ -31,6 +31,7 @@ include("entity.lua")
 include("cc.lua")
 include("limits.lua")
 include("ready.lua")
+include("loadout.lua")
 
 function GM:ResetGame()
     -- Reset business logic
@@ -175,69 +176,6 @@ hook.Add("PlayerDisconnected", "B2CTF_ReassignCreatedEntsOnLeaveOrCleanup", func
             reassignStuff(ply, ply:Team(), true)
             resetTeamScoreIfThisWasTheLastPlayer(ply, ply:Team())
         end
-end )
-
-
--- Loadout stuff
-
-hook.Add("B2CTF_PhaseChanged", "AddOrRemoveSandboxWeapons", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
-    for _, v in ipairs( player.GetAll() ) do
-        if (not IsValid(v)) or (not v:TeamValid()) or (not v:Alive()) then return end -- don't give weapons to invalid, spectator or dead players
-
-        if newPhaseInfo.buildAllowed then
-            v:Give("gmod_tool")
-            v:Give("weapon_physgun")
-            v:StripWeapon("b2ctf_unfreezer")
-        else
-            v:StripWeapon("gmod_tool")
-            v:StripWeapon("weapon_physgun")
-            v:Give("b2ctf_unfreezer")
-        end
-    end
-end)
-
-function GM:PlayerLoadout( ply )
-    -- Called after PlayerSpawn hook
-    if not ply:TeamValid() then return true end -- spectators don't have a loadout
-
-    local buildAllowed = Phaser:CurrentPhaseInfo().buildAllowed
-
-    local overriden = hook.Run("B2CTF_PlayerLoadout", ply, buildAllowed) -- this is similar to PlayerLoadout hook except the toolgun/physgun/unfreezer are not should be added here
-
-    if overriden == nil then
-        -- no override: give "default" loadout
-        ply:Give("weapon_crowbar")
-        ply:Give("weapon_pistol")
-        ply:Give("item_ammo_pistol_large")
-        ply:Give("weapon_357")
-        ply:Give("item_ammo_357_large")
-        ply:Give("weapon_shotgun")
-        ply:Give("item_box_buckshot")
-        ply:Give("weapon_smg1")
-        ply:Give("item_ammo_smg1_large")
-        ply:Give("weapon_medkit")
-        ply:Give("weapon_physcannon")
-    end
-
-    if buildAllowed then
-        -- give toolgun and physgun only when build is allowed
-        ply:Give("gmod_tool")
-        ply:Give("weapon_physgun")
-    else
-        ply:Give("b2ctf_unfreezer")
-    end
-
-    -- Prevent default Loadout.
-    return true
-end
-
-hook.Add( "PlayerCanPickupWeapon", "B2CTF_CheckPickup", function( ply, weapon )
-    local c = weapon:GetClass()
-    if (c == "weapon_physgun") or (c == "gmod_tool") then
-        if not ply:CurrentlyBuilding() then
-            return false -- dont let them pick up these forbidden weapons
-        end
-    end
 end )
 
 -- Controlling damage stuff
