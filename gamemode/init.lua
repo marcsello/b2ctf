@@ -222,5 +222,7 @@ end )
 
 -- TODO: Put this somewhere else!
 -- Used by cl_flags
-util.PrecacheModel("models/props_canal/canal_cap001.mdl")
-util.PrecacheModel("models/props_c17/statue_horse.mdl")
+if Config.UseBuiltinFlagRendering then
+    util.PrecacheModel("models/props_canal/canal_cap001.mdl")
+    util.PrecacheModel("models/props_c17/statue_horse.mdl")
+end
