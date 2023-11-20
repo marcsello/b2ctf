@@ -5,139 +5,260 @@ if not Config.UseBuiltinHUDRendering then
     return
 end
 
-local teamID = -1
-local teamIDValid = false
-local teamGrabbedAnyFlag = false
-local iconSize = 32
-
-local homeSymbol = Material("models/wireframe")
-
-local lookingAtOwnerNick = nil
-local lookingAtOwnerTeamColor = nil
-local lookingAtOwnerTeamName = nil
-
-local background = Color(0, 0, 0, 128)
-
-timer.Create("B2CTF_SlowUpdateHUDValues", 0.2, 0, function()
-    -- Update these values less frequently, as they are costly to caluclate
-    if not IsValid(LocalPlayer()) then return end
-    teamID = LocalPlayer():Team() -- this is actually quick to read, but we want it to be consistent with other slow things
-    teamIDValid = LocalPlayer():TeamValid() and FlagManager:FlagIDValid(teamID)
-    teamGrabbedAnyFlag = FlagManager:GetFlagIDGrabbedByTeam(teamID) ~= nil
-
-    local lEnt = LocalPlayer():GetEyeTrace().Entity
-    local lo = nil
-    if lEnt then
-        lo = lEnt:B2CTFGetCreator()
+-- some utility functions to work with polygons
+local function transformPoly(poly, transformX, transformY)
+    local newPoly = {}
+    for i,v in ipairs(poly) do
+        newPoly[i] = {
+            x = v.x + transformX,
+            y = v.y + transformY
+        }
     end
+    return newPoly
+end
 
-    if lo and IsValid ( lo ) and lo:TeamValid() then
-        lookingAtOwnerNick = lo:Nick()
-        lookingAtOwnerTeamColor = team.GetColor(lo:Team())
-        lookingAtOwnerTeamName = team.GetName(lo:Team())
-    else
-        lookingAtOwnerNick = nil
-        lookingAtOwnerTeamColor = nil
-        lookingAtOwnerTeamName = nil
-    end
+-- The timer
 
-end)
+local timerHUD = {
+    -- settings
+    w = 300,
+    h = 40,
+    slopeSize = 35,
+    border = 4,
 
-local function drawOwnerInfo() -- TODO: Optimize this
-    -- Draw entity creator currently looking at
-    if lookingAtOwnerNick then
-        surface.SetFont("DermaDefault")
-        local nameW, nameH = surface.GetTextSize( lookingAtOwnerNick )
-        local teamW, teamH = surface.GetTextSize( lookingAtOwnerTeamName )
+    -- placeholders
+    phaseName = "",
+    startTime = 0,
+    endTime = 0,
+    warnTime = 0,
+}
 
-        local boxW = math.max(nameW, teamW) + 15 -- 5 left, 10 right
-        local boxH = nameH + teamH + 10 -- 5 above, 5 bellow
-        local boxX = ScrW() - boxW
-        local boxY = ScrH() * 0.4
+function timerHUD:Init()
+    local basePoly = {
+        {x = -self.border,            y = 0     },
+        {x = self.w + self.border,    y = 0     },
+        {x = self.w - self.slopeSize + self.border/2, y = self.h + self.border},
+        {x = self.slopeSize - self.border/2,          y = self.h + self.border},
+    }
 
-        surface.SetDrawColor(background)
-        surface.DrawRect(boxX, boxY, boxW, boxH)
+    -- put it to the top center of the screen
+    self.basePoly = transformPoly(basePoly, ScrW() / 2 - self.w / 2, 0)
 
-        local nameX = ScrW() - nameW - 10
-        local nameY = ScrH() * 0.4 + 5
+    surface.CreateFont( "B2CTF_HUD_Timer_Phase", {
+        font = "Arial", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
+        size = self.h * 0.6,
+    } )
 
-        local teamX = ScrW() - math.max(teamW, nameW) - 10
-        local teamY = ScrH() * 0.4 + 5 + teamH
+    surface.CreateFont( "B2CTF_HUD_Timer_Time", {
+        font = "RobotoBold", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
+        size = self.h * 0.4,
+    } )
 
-        -- Owner
-        surface.SetTextColor(0, 0, 0, 255)
-        surface.SetTextPos(nameX + 1, nameY + 1)
-        surface.DrawText(lookingAtOwnerNick, false)
 
-        surface.SetTextColor(255, 255, 255, 255)
-        surface.SetTextPos(nameX, nameY)
-        surface.DrawText(lookingAtOwnerNick, false)
+end
 
-        -- Team
-        surface.SetTextPos(teamX + 1, teamY + 1)
-        surface.DrawText(lookingAtOwnerTeamName, false)
-
-        surface.SetTextColor(lookingAtOwnerTeamColor:Unpack())
-        surface.SetTextPos(teamX, teamY)
-        surface.DrawText(lookingAtOwnerTeamName, false)
+function timerHUD:_yFunc(x)
+    if x > self.slopeSize and (x < self.w - self.slopeSize) then
+        return self.h
+    elseif x <= self.slopeSize then
+        return self.h * (x / self.slopeSize)
+    else  -- possibly x > self.w - self.slopeSize
+        local scaledX = x - (self.w - self.slopeSize)
+        return self.h - self.h * (scaledX / self.slopeSize)
     end
 end
 
-
-local function DrawCustomHUD()
-    surface.SetDrawColor(background)
-    surface.DrawRect(0, 0, 300, 225)
-
-    if LocalPlayer():AtHome() then -- AtHome is quick to read
-        surface.SetDrawColor(255, 255, 255, 255)
-        surface.SetMaterial(homeSymbol)
-        surface.DrawTexturedRect(10, 10, iconSize, iconSize)
-    end
-    if teamIDValid then
-        if FlagManager.flags[teamID].grabbedBy or FlagManager.flags[teamID].droppedPos then
-            -- own flag taken by enemy
-            surface.SetDrawColor(B2CTF_MAP.teams[teamID].color)
-            surface.SetMaterial(homeSymbol)
-            surface.DrawTexturedRect(10, 10 + (iconSize + 2) * 2, iconSize, iconSize)
-        end
-        if teamGrabbedAnyFlag then
-            -- took someone's flag
-            surface.SetDrawColor(B2CTF_MAP.teams[teamID].color)
-            surface.SetMaterial(homeSymbol)
-            surface.DrawTexturedRect(10, 10 + (iconSize + 2) * 3, iconSize, iconSize)
-        end
+function timerHUD:_calcFillPoly(length)
+    local fillPoly = {
+        {x = 0,      y = 0},
+        {x = length, y = 0},
+    }
+    if length > (self.w-self.slopeSize) then
+        -- over both points
+        fillPoly[3] = {x = length, y = self:_yFunc(length)}
+        fillPoly[4] = {x = self.w - self.slopeSize, y = self.h}
+        fillPoly[5] = {x = self.slopeSize, y = self.h}
+    elseif length < self.slopeSize then
+        -- no points
+        fillPoly[3] = {x = length, y = self:_yFunc(length)}
+    else
+        -- over the first point only
+        fillPoly[3] = {x = length, y = self.h}
+        fillPoly[4] = {x = self.slopeSize, y = self.h}
     end
 
-    local timeLeft = Phaser:CurrentPhaseTimeLeft()
-    local phaseTime = Phaser:CurrentPhaseInfo().time
+    return transformPoly(fillPoly, ScrW() / 2 - self.w / 2, 0)
+end
 
-    -- Draw current phase name
-    draw.SimpleText("Current Phase: " .. Phaser:CurrentPhaseInfo().name, "HudHintTextLarge", 50, 50, color_white, TEXT_ALIGN_LEFT)
-
-    -- Draw next phase name
-    draw.SimpleText("Next Phase: " .. Phaser:NextPhaseInfo().name, "HudHintTextLarge", 50, 75, color_white, TEXT_ALIGN_LEFT)
-
-    -- Draw time left in human-readable format
+function timerHUD:Draw()
+    -- calculate stuff
+    local timeLeft = self.endTime - CurTime()
+    if timeLeft < 0 then
+        timeLeft = 0
+    end
+    local phaseTime = self.endTime - self.startTime
+    local length = self.w * (timeLeft / phaseTime)
+    local fillPoly = self:_calcFillPoly(length) -- this might be a little costy, but there is not real benefit to move it out
     local minutesLeft = math.floor(timeLeft / 60)
     local secondsLeft = math.floor(timeLeft % 60)
-    local timeLeftText = string.format("Time Left: %02d:%02d", minutesLeft, secondsLeft)
-    draw.SimpleText(timeLeftText, "HudHintTextLarge", 50, 100, color_white, TEXT_ALIGN_LEFT)
+    local timeLeftText = string.format("%02d:%02d", minutesLeft, secondsLeft)
+    local blink = (timeLeft < self.warnTime) and (CurTime() - math.floor(CurTime()) > 0.5)
 
-    -- Draw a progress bar
-    local progress = 1 - (timeLeft / phaseTime)
-    local barWidth = 200
-    local barHeight = 20
-    surface.SetDrawColor(255, 255, 255, 255)
-    surface.DrawRect(50, 125, barWidth, barHeight)
-    surface.SetDrawColor(0, 128, 255, 255) -- Adjust the color as needed
-    surface.DrawRect(50, 125, barWidth * progress, barHeight)
+    -- draw stuff
+    draw.NoTexture()
+    surface.SetDrawColor(0,0,0,128)
+    surface.DrawPoly(self.basePoly)
+    surface.SetDrawColor(255,255,255,128)
+    surface.DrawPoly(fillPoly)
+    surface.SetTextColor(255, 120, 0, 255)
 
-    for i, t in ipairs(B2CTF_MAP.teams) do
-        draw.SimpleText(t.name .. " " .. team.GetScore(i), "HudHintTextLarge", 50, 150 + 15 * i, color_white, TEXT_ALIGN_LEFT)
+
+    surface.SetFont("B2CTF_HUD_Timer_Phase")
+    local textW, textH = surface.GetTextSize(self.phaseName)
+    surface.SetTextPos(ScrW() / 2 - textW / 2, 0)
+    surface.DrawText(self.phaseName, false)
+
+    if blink then
+        surface.SetTextColor(255, 0, 0, 255)
     end
 
-    drawOwnerInfo()
+    surface.SetFont("B2CTF_HUD_Timer_Time")
+    local textW = surface.GetTextSize(timeLeftText)
+    surface.SetTextPos(ScrW() / 2 - textW / 2, textH)
+    surface.DrawText(timeLeftText, false)
 
 end
 
-hook.Add("HUDPaint", "B2CTF_HUD", DrawCustomHUD)
+function timerHUD:UpdateInfo(phaseName, startTime, endTime, warnTime)
+    self.phaseName = phaseName
+    self.startTime = startTime
+    self.endTime = endTime
+    self.warnTime = warnTime
+end
+
+-- Home indicator
+local homeIndicator = {
+    x = ScrW() - 32 - 16,
+    y = ScrH() * 0.8,
+    iconSize = 32,
+
+    homeSymbol = nil,
+    homeSymbolAway = nil
+}
+
+function homeIndicator:Draw()
+    surface.SetDrawColor(255, 255, 255, 255)
+    if LocalPlayer():AtHome() then -- AtHome is quick to read
+        surface.SetMaterial(self.homeSymbol)
+    else
+        surface.SetMaterial(self.homeSymbolAway)
+    end
+    surface.DrawTexturedRect(self.x, self.y, self.iconSize, self.iconSize)
+end
+
+function homeIndicator:Init()
+    self.homeSymbol = Material("icon16/house.png")
+    self.homeSymbolAway = Material("icon16/house_go.png")
+end
+
+-- Entity owner
+local entityCreator = {
+    lastLookedEntity = nil,
+
+    -- cached stuff
+    shouldDraw = false,
+    creatorTeamColor = nil,
+    creatorTeamName = nil,
+    creatorNick = nil,
+}
+
+function entityCreator:Draw()
+    -- calculate stuff
+    local lEnt = LocalPlayer():GetEyeTrace().Entity -- get the looked at entity
+    if self.lastLookedEntity ~= lEnt then -- if it's changed, then update the cached vars
+        local lEntCreator = lEnt:B2CTFGetCreator()
+        if lEntCreator and IsValid (lEntCreator) and lEntCreator:TeamValid() then
+            self.creatorTeamColor = team.GetColor(lEntCreator:Team())
+            self.creatorTeamName = team.GetName(lEntCreator:Team())
+            self.creatorNick = lEntCreator:Nick()
+            self.shouldDraw = true
+        else
+            self.creatorTeamColor = nil
+            self.creatorTeamName = nil
+            self.creatorNick = nil
+            self.shouldDraw = false
+        end
+    end
+
+    if not self.shouldDraw then return end -- nothing to draw here
+
+    -- draw
+    -- just kidding calculate some more...
+    surface.SetFont("DermaDefault")
+    local nameW, nameH = surface.GetTextSize( self.creatorNick )
+    local teamW, teamH = surface.GetTextSize( self.creatorTeamName )
+
+    local boxW = math.max(nameW, teamW) + 15 -- 5 left, 10 right
+    local boxH = nameH + teamH + 10 -- 5 above, 5 bellow
+    local boxX = ScrW() - boxW
+    local boxY = ScrH() * 0.4
+
+    surface.SetDrawColor(0,0,0,128)
+    surface.DrawRect(boxX, boxY, boxW, boxH)
+
+    local nameX = ScrW() - nameW - 10
+    local nameY = ScrH() * 0.4 + 5
+
+    local teamX = ScrW() - math.max(teamW, nameW) - 10
+    local teamY = ScrH() * 0.4 + 5 + teamH
+
+    -- now we are drawing
+    -- Owner
+    surface.SetTextColor(0, 0, 0, 255)
+    surface.SetTextPos(nameX + 1, nameY + 1)
+    surface.DrawText(self.creatorNick, false)
+
+    surface.SetTextColor(255, 255, 255, 255)
+    surface.SetTextPos(nameX, nameY)
+    surface.DrawText(self.creatorNick, false)
+
+    -- Team
+    surface.SetTextPos(teamX + 1, teamY + 1)
+    surface.DrawText(self.creatorTeamName, false)
+
+    surface.SetTextColor(self.creatorTeamColor:Unpack())
+    surface.SetTextPos(teamX, teamY)
+    surface.DrawText(self.creatorTeamName, false)
+
+
+end
+
+function entityCreator:Init()
+
+
+end
+
+-- Init stuff
+
+timerHUD:Init()
+homeIndicator:Init()
+entityCreator:Init()
+
+-- Call hooks
+local function DrawB2CTFHUD()
+    if hook.Run("HUDShouldDraw", GAMEMODE, "B2CTFTimer") then
+        timerHUD:Draw()
+    end
+    if hook.Run("HUDShouldDraw", GAMEMODE, "B2CTFHomeIndicator") then
+        homeIndicator:Draw()
+    end
+    if hook.Run("HUDShouldDraw", GAMEMODE, "B2CTFEntityCreator") then
+        entityCreator:Draw()
+    end
+
+end
+hook.Add("HUDPaint", "B2CTF_HUD", DrawB2CTFHUD)
+
+hook.Add("B2CTF_PhaseChanged", "UpdateHudValues", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
+    timerHUD:UpdateInfo(newPhaseInfo.name, startTime, endTime, newPhaseInfo.warnTime)
+end )

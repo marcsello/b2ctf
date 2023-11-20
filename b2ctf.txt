@@ -74,7 +74,7 @@
 		{
 			"name"		"b2ctf_use_builtin_hud_rendering"
 			"text"		"Use builtin HUD rendering"
-			"help"		"Render B2CTF's default hud. Disable it to bring your own. (on-the-fly change not supported)"
+			"help"		"Render B2CTF's default hud. Disable it to bring your own. (on-the-fly change not supported). Unlike hiding elements with HUDShouldDraw this disables all HUD related code."
 			"type"		"CheckBox"
 			"default"	"1"
 		}
