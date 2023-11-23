@@ -8,9 +8,6 @@ steps:
     commands:
       - pip3 install -r tests/config_validation/requirements.txt
       - python3 tests/config_validation/validate.py
-    when:
-      branch:
-        - master
 
   - name: telegram
     image: appleboy/drone-telegram
