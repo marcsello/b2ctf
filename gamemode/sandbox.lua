@@ -22,5 +22,9 @@ hook.Add("CanUndo", "B2CTF_UndoCheckWhenNotBuilding", denyWhenNotBuilding)
 hook.Add("CanEditVariable", "B2CTF_EditVarCheckWhenNotBuilding", function( ent, ply, key, val, editor )
     return denyWhenNotBuilding(ply)
 end )
+hook.Add("OnPhysgunReload", "B2CTF_PhysgunReloadCheckWhenNotBuilding", function( physgun, ply )
+    -- this hook is not called by the battle unfreezer
+    return denyWhenNotBuilding(ply)
+end )
 
 include("sh_sandbox.lua")
