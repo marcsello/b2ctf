@@ -124,7 +124,8 @@ Config.UseBuiltinProtection =    createConvarField("Bool", "b2ctf_use_builtin_pr
 Config.UseBuiltinFlagRendering = createConvarField("Bool", "b2ctf_use_builtin_flag_rendering", true, false, false, "Use builtin flag rendering")
 Config.UseBuiltinHUDRendering =  createConvarField("Bool", "b2ctf_use_builtin_hud_rendering",  true, false, false, "Use builtin HUD rendering")
 
-Config.EnablePlayerReady =         createConvarField("Bool", "b2ctf_enable_player_ready",           true, false, false, "Allow players to skip a phase by stating that they are ready")
-Config.EnablePlayerReadyBySpare2 = createConvarField("Bool", "b2ctf_enable_player_ready_by_spare2", true, false, false, "Allow players to use Spare2 to toggle their ready state")
+Config.EnablePlayerReadyShort =    createConvarField("Bool", "b2ctf_enable_player_ready_short",     true,  false, false, "Allow players to skip short phases phase by stating that they are ready")
+Config.EnablePlayerReadyBuild =    createConvarField("Bool", "b2ctf_enable_player_ready_build",     false, false, false, "Allow players to skip the build phase by stating that they are ready")
+Config.EnablePlayerReadyBySpare2 = createConvarField("Bool", "b2ctf_enable_player_ready_by_spare2", true,  false, false, "Allow players to use Spare2 to toggle their ready state")
 
 -- alright... I might have over-engineered this part...

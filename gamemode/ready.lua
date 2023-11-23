@@ -1,7 +1,7 @@
 -- This is the business logic for the very basic ready system
 -- It can be disabled to use a 3rd pary solution, or not use ready stuff at all
 
-if not Config.EnablePlayerReady then
+if not (Config.EnablePlayerReadyShort or Config.EnablePlayerReadyBuild) then
     return
 end
 print("Phase skipping by ready is enabled")

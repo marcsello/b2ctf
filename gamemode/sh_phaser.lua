@@ -19,7 +19,7 @@ GAME_PHASE_INFO = {
         buildAllowed = false, -- Spawn menu works, players have toolgun and physgun
         fightAllowed = false, -- 
         homeSickness = false, -- Players hurt when leaving the site, also brought back on phase change, props also break that wander around
-        rdySkippable = true, -- Allows the pahse to be skipped by all players being ready
+        rdySkippable = Config.EnablePlayerReadyShort, -- Allows the pahse to be skipped by all players being ready
     },
     [GAME_PHASE_BUILD] = {
         time = Config.BuildTime,
@@ -28,7 +28,7 @@ GAME_PHASE_INFO = {
         buildAllowed = true,
         fightAllowed = false,
         homeSickness = true,
-        rdySkippable = false,
+        rdySkippable = Config.EnablePlayerReadyBuild,
     },
     [GAME_PHASE_PREWAR] = {
         time = Config.PreWarTime,
@@ -37,7 +37,7 @@ GAME_PHASE_INFO = {
         buildAllowed = false,
         fightAllowed = false,
         homeSickness = true,
-        rdySkippable = true,
+        rdySkippable = Config.EnablePlayerReadyShort,
     },
     [GAME_PHASE_WAR] = {
         time = Config.WarTime,
