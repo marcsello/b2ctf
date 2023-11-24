@@ -94,6 +94,15 @@ local configMeta = {
             error("This entry is already defined: " .. key)
         end
     end,
+    __tostring = function(table)
+        local raws = rawget(table, "_raws")
+        local text = ""
+        for k, v in pairs(raws) do
+            text = text .. k .. ": " .. tostring(v()) .. "\n"
+        end
+        text = string.gsub(text, "\n$", "", 1) -- remove the last "\n"
+        return text
+    end
 }
 
 -- Setup global Config var to hold our config
