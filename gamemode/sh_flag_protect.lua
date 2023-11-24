@@ -20,8 +20,10 @@ function flagPushawayThink(flagID)
     for i, ent in ipairs(violatingEnts) do -- this is a lot of entities
         if not IsValid(ent) then continue end
         if ent:IsPlayer() then continue end -- ignore players only
+        --[[
         local creator = ent:B2CTFGetCreator() -- only apply on ents that have a valid creator (could be a problem if players could manipulate world entities)
         if not creator then continue end
+        ]]
         if ent._b2ctf_flag_protect_remove_started then continue end -- don't care if it's already being removed
 
         if (not ent._b2ctf_last_too_close_to_a_flag) or ((CurTime() - ent._b2ctf_last_too_close_to_a_flag) > FLAG_PROTECT_RESET_TIMER_AFTER) then
