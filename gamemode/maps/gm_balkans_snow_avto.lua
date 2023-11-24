@@ -1,7 +1,7 @@
 B2CTF_MAP = {}
 B2CTF_MAP.teams = {
     {
-        name = "Alpha",
+        name = "Red",
         description = "",
         color = Color(255, 60, 60, 255),
         boundaries = {Vector(-10030, 10861, 2000), Vector(-15010, 14843, 3000)},
@@ -9,7 +9,7 @@ B2CTF_MAP.teams = {
         flagPos = Vector(-11221.1, 9149.8, 2180.428),
     },
     {
-        name = "Beta",
+        name = "Blue",
         description = "",
         color = Color(63, 60, 255),
         boundaries = {Vector(-5200.56, -10203, 1500), Vector(-9546.65, -6987.22, 2500)},
@@ -17,7 +17,7 @@ B2CTF_MAP.teams = {
         flagPos = Vector(-6963.2, -5880.4, 1502.88),
     },
     {
-        name = "Gamma",
+        name = "Yellow",
         description = "",
         color = Color(255, 219, 60),
         boundaries = {Vector(14835.7, 12186.4, -400), Vector(11606.2, 4692.72, 600)},
@@ -25,7 +25,7 @@ B2CTF_MAP.teams = {
         flagPos = Vector(9737.88, 7984.15, -384),
     },
     {
-        name = "Delta",
+        name = "Green",
         description = "",
         color = Color(76, 255, 60),
         boundaries = {Vector(12426.5, -15033.8, -550), Vector(8342.9, -11423.2, 450)},
