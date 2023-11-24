@@ -14,16 +14,34 @@ for i, v in ipairs(B2CTF_MAP.teams) do
     protectPos[i] = v.flagPos
 end
 
-function flagPushawayThink(flagID)
+local function flagShouldIgnoreEntity(ent) -- true = ignore, false = don't ignore
+    -- Ignore a bunch of stuff
+    if not IsValid(ent) then return true end
+    if ent:IsPlayer() then return true end -- ignore players 
+    if ent:IsWeapon() and ent:GetMoveParent():IsPlayer() then return true end -- if it's a weapon, check if it's held by anyone, if yes, skip
+    if ent:ViewModelIndex() != nil then return true end -- View models are entities too for some reason...
+    if ent:EntIndex() == -1 then return true end -- ignore purely client-side and server side entites too
+
+    -- And now, we still have things like physgun_beam, env_laserdot, gmod_hands, etc. that should not be messed with
+    -- So we go full quirk mode here
+    -- For some reason gmod_hands aren't considered client side entity, but it exists on client side only
+    if CLIENT and (ent:GetClass() == "gmod_hands") then return true end -- ignore gmod hands
+
+    local phy = ent:GetPhysicsObject()
+    local creator = ent:B2CTFGetCreator() -- only apply on ents that have a valid creator (could be a problem if players could manipulate world entities)
+    if not (creator or IsValid(phy)) then return true end -- if we don't know the creator, and this is not a phys object, then ignore
+
+    -- TODO: these check allow launching granades and slams when the player is standing in a flag... dunno what to do about that...
+
+    -- passed all checks, should not ignore this entity
+    return false
+end
+
+local function flagPushawayThink(flagID)
     local flagPos = protectPos[flagID]
     local violatingEnts = ents.FindInSphere( flagPos, FLAG_PROTECT_RADIUS ) -- fun fact: the actual radius will be little bigger than defined here
     for i, ent in ipairs(violatingEnts) do -- this is a lot of entities
-        if not IsValid(ent) then continue end
-        if ent:IsPlayer() then continue end -- ignore players only
-        --[[
-        local creator = ent:B2CTFGetCreator() -- only apply on ents that have a valid creator (could be a problem if players could manipulate world entities)
-        if not creator then continue end
-        ]]
+        if flagShouldIgnoreEntity(ent) then continue end
         if ent._b2ctf_flag_protect_remove_started then continue end -- don't care if it's already being removed
 
         if (not ent._b2ctf_last_too_close_to_a_flag) or ((CurTime() - ent._b2ctf_last_too_close_to_a_flag) > FLAG_PROTECT_RESET_TIMER_AFTER) then
