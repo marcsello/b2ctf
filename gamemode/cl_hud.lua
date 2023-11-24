@@ -239,12 +239,18 @@ function entityCreator:Init()
 end
 
 -- Init stuff
-
 timerHUD:Init()
+
+-- Hack: it is possible that a client might miss the initial phase transition because of how files loaded in order
+local currentPhaseInfo = Phaser:CurrentPhaseInfo()
+if currentPhaseInfo then
+    timerHUD:UpdateInfo(currentPhaseInfo.name, Phaser:CurrentPhaseStart(), Phaser:CurrentPhaseEnd(), currentPhaseInfo.warnTime)
+end
+
 homeIndicator:Init()
 entityCreator:Init()
 
--- Call hooks
+-- Setup hooks
 local function DrawB2CTFHUD()
     if hook.Run("HUDShouldDraw", GAMEMODE, "B2CTFTimer") then
         timerHUD:Draw()
