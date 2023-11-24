@@ -14,6 +14,7 @@ AddCSLuaFile("sh_flag.lua")
 AddCSLuaFile("cl_flag.lua")
 AddCSLuaFile("cl_limits.lua")
 AddCSLuaFile("sh_flag_protect.lua")
+AddCSLuaFile("concommands/cl_init.lua")
 AddCSLuaFile("sh_sandbox.lua") -- Included by sandbox.lua and cl_sandbox.lua
 
 
@@ -28,7 +29,7 @@ include("sandbox.lua")
 include("team_spawn.lua")
 include("boundaries.lua")
 include("entity.lua")
-include("cc.lua")
+include("concommands/init.lua")
 include("limits.lua")
 include("ready.lua")
 include("loadout.lua")
