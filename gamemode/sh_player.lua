@@ -72,8 +72,18 @@ function meta:AtHome()
     return self._b2ctf_atHome
 end
 
-function meta:_setAtHome( atHome )
+function meta:_setAtHome(atHome)
     self._b2ctf_atHome = atHome
+end
+
+local function updateAtHome(ply)
+    if not (ply and IsValid(ply)) then return end
+    if not ply:TeamValid() then return end -- only check if player valid
+    local teamInfo = B2CTF_MAP.teams[ply:Team()]
+    assert(teamInfo, "failed to get team info") -- this must be an error
+    ply:_setAtHome(
+        ply:GetPos():WithinAABox(teamInfo.boundaries[1], teamInfo.boundaries[2]) -- <- heavy stuff
+    )
 end
 
 
@@ -81,18 +91,19 @@ timer.Create("B2CTF_SlowUpdateAtHome", 0.25, 0, function()
     if not B2CTF_MAP then return end
 
     for _, ply in ipairs( player.GetAll() ) do
-        if not ( ply and IsValid( ply ) ) then continue end -- glua implements continue lol
-        if not ply:TeamValid() then continue end -- ignores connecting, spectator etc.
-        local teamInfo = B2CTF_MAP.teams[ply:Team()]
-        assert(teamInfo, "failed to get team info") -- this must be an error
-
-        ply:_setAtHome(
-            ply:GetPos():WithinAABox(teamInfo.boundaries[1], teamInfo.boundaries[2]) -- <- the heavy stuff
-        )
-
+        if CLIENT and ply == LocalPlayer() then continue end -- ignore local player on client side, we use PreciseUpdate for that
+        updateAtHome(ply)
     end
 
 end)
+
+if CLIENT then
+    -- Setup PreciseUpdate for the local player on client side, for better UX
+    hook.Add("Think", "B2CTF_PreciseUpdateLocalAtHome", function()
+        if not B2CTF_MAP then return end
+        updateAtHome(LocalPlayer())
+    end )
+end
 
 hook.Add( "PlayerSpawn", "B2CTF_UpdateAtHomeOnSpawn", function(ply)
     -- This is required because some hooks that run after spwan (Loadout for example)
