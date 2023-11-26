@@ -68,13 +68,16 @@ function FlagManager:GetFlagInfoGrabbedByPlayer(ply)
     end
 end
 
-function FlagManager:GetFlagIDGrabbedByTeam(teamID)
+function FlagManager:GetFlagIDsGrabbedByTeam(teamID) -- returns: array
     -- Checks if the given team has grabbed any flag
     -- TODO: A team may hold more than one flag
-    for i, flag in ipairs(self.flags) do
-        if flag.grabbedBy and flag.grabbedBy:Team() == teamID then return i end
+    local flags = {}
+    for flagID, flag in ipairs(self.flags) do
+        if flag.grabbedBy and flag.grabbedBy:Team() == teamID then
+            table.insert(flags, flagID)
+        end
     end
-    return nil -- wow, this really is needed
+    return flags
 end
 
 function FlagManager:DropFlag(flagID, droppedPos, droppedTs)

@@ -36,7 +36,7 @@ local function printTeamInfo(teamID, teamInfo)
     print("    Total Deaths: " .. team.TotalDeaths(teamID))
     print("    Total Frags: " .. team.TotalFrags(teamID))
     print("    Flag ID valid: " .. tostring(FlagManager:FlagIDValid(teamID)))
-    print("    Grabbed flag ID: " .. tostring(FlagManager:GetFlagIDGrabbedByTeam(teamID)))
+    print("    Grabbed flag IDs: " .. listToStr(FlagManager:GetFlagIDsGrabbedByTeam(teamID)))
 end
 
 local function printFlagInfo(teamID, flagInfo)
