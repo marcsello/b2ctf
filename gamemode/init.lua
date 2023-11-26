@@ -180,6 +180,65 @@ hook.Add("PlayerDisconnected", "B2CTF_ReassignCreatedEntsOnLeaveOrCleanup", func
         end
 end )
 
+-- Restart game, when the first two teams are formed (cs1.6 style)
+hook.Add("PlayerChangedTeam", "B2CTF_RestartWhenTeamsFormed", function(ply, oldTeam, newTeam)
+    if not (ply and IsValid(ply)) then return end -- lol?
+
+    -- First, Check if the player is just to a valid team from an invalid one (like spectator)...
+    local oldTeamValid = oldTeam > 0 and oldTeam < 1000 and team.Valid(oldTeam)
+    local newTeamValid = newTeam > 0 and newTeam < 1000 and team.Valid(newTeam)
+    if oldTeamValid or (not newTeamValid) then return end -- not joined to a valid team from an invalid one
+
+    -- Next, Check if the team the player just joined to was empty
+    local playersInNewTeam = team.GetPlayers(newTeam)
+    -- GetPlayers call in PlayerChangedTeam hook generally returns with the old state, but we want to make sure
+    local otherPlayersInNewTeamCnt = #playersInNewTeam
+    if table.HasValue(playersInNewTeam, ply) then
+        otherPlayersInNewTeamCnt = otherPlayersInNewTeamCnt -1
+    end
+
+    if otherPlayersInNewTeamCnt > 0 then return end -- joined in a non-empty team. Ignore...
+
+    -- Lastly, check if there is exactly one other team that have members other than this team...
+    local foundOneOtherNonEmptyTeam = false
+    for teamID, _ in pairs(team.GetAllTeams()) do
+        if not (teamID > 0 and teamID < 1000 and team.Valid(teamID)) then continue end -- ignore invalid teams
+        if teamID == newTeam then continue end -- ignore the new team
+
+        local playersInTeam = team.GetPlayers(teamID)
+        local playersInTeamCnt = #playersInTeam
+        -- the player is actually reported in their old team... which is an invalid one in our case, and we skip checking invalid teams, but whatever...
+        if table.HasValue(playersInTeam, ply) then
+            playersInTeamCnt = playersInTeamCnt -1
+        end
+
+        if playersInTeamCnt > 0 then
+            if foundOneOtherNonEmptyTeam then
+                return -- there is more than one team that is non-empty ... Ignore
+            else
+                foundOneOtherNonEmptyTeam = true
+            end
+        end
+    end
+
+    if not foundOneOtherNonEmptyTeam then return end -- there wasn't any other team with members 
+
+    -- If all the above passed, commence the game...
+    PrintMessage(HUD_PRINTCENTER, "Game Commencing...")
+    timer.Simple(4, function()
+        -- Reset business logic
+        Phaser:Reset()
+        FlagManager:Reset()
+
+        -- Reset team scores
+        for i, v in pairs(team.GetAllTeams()) do  -- teams aren't a continous array, so we need pairs instead of ipairs
+            team.SetScore( i, 0 ) -- yes, this resets spectators, connecting etc. scores too
+        end
+
+        -- Don't cleanup map... That would be abusable maybe?
+    end )
+end )
+
 -- Controlling damage stuff
 
 hook.Add( "PlayerShouldTakeDamage", "B2CTF_BuildersShouldNotFight", function( ply, attacker )
