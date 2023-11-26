@@ -4,6 +4,7 @@ GM.Author = "Marcsello"
 GM.Email = "marcsello@derpymail.org"
 GM.Website = "marcsello.com"
 GM.TeamBased = true -- This seems to be a gmod base config, but can't find much documentation on it
+GM.SecondsBetweenTeamSwitches = 240 -- 4 minutes; TODO: make configurable
 GM.CanOnlySpectateOwnTeam = true
 GM.ValidSpectatorModes = {OBS_MODE_CHASE, OBS_MODE_IN_EYE}
 
