@@ -49,6 +49,7 @@ if SERVER then
     end )
 
     hook.Add("CanPlayerUnfreeze", "B2CTF_ProtectUnFreeze", function( ply, ent, phys )
+        -- this is called by the battle unfreezer too!
         if not checkTeamAllowed(ply, ent) then
             return false
         end
