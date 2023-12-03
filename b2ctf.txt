@@ -81,6 +81,15 @@
 
 		9
 		{
+			"name"		"b2ctf_use_builtin_boundary_rendering"
+			"text"		"Use builtin boundary rendering"
+			"help"		"Enable the built-in default client-side boundary rendering. Disable it to bring your own. (on-the-fly change not supported)."
+			"type"		"CheckBox"
+			"default"	"1"
+		}
+
+		10
+		{
 			"name"		"b2ctf_enable_player_ready_short"
 			"text"		"Allow players to skip short phases phase by stating that they are ready"
 			"help"		"Allow players to skip pre and post war phases by stating that they are all ready. Players can say !ready in the chat to toggle their ready state. (on-the-fly change not supported)"
@@ -88,7 +97,7 @@
 			"default"	"1"
 		}
 
-		10
+		11
 		{
 			"name"		"b2ctf_enable_player_ready_build"
 			"text"		"Allow players to skip the build phase by stating that they are ready"
@@ -97,7 +106,7 @@
 			"default"	"0"
 		}
 
-		11
+		12
 		{
 			"name"		"b2ctf_enable_player_ready_by_spare2"
 			"text"		"Allow players to use Spare2 to toggle their ready state"

@@ -1,4 +1,9 @@
 -- Draw boundaries in the 3D world
+if not Config.UseBuiltinBoundaryRendering then
+    print("B2CTF Builtin boundary rendering is disabled")
+    return
+end
+
 local function DrawHomeBoundaries(bDrawingDepth, bDrawingSkybox, isDraw3DSkybox)
     if bDrawingSkybox then return end
 

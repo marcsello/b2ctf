@@ -129,9 +129,10 @@ Config.PreWarTime =     createConvarField("Int", "b2ctf_phase_time_prewar",     
 Config.WarTime =        createConvarField("Int", "b2ctf_phase_time_war",        1800, false, false, "War phase time",        validatorMinimum(5))
 Config.AutoReturnTime = createConvarField("Int", "b2ctf_flag_auto_return_time", 30,   false, true,  "Flag auto return time", validatorMinimum(1))
 
-Config.UseBuiltinProtection =    createConvarField("Bool", "b2ctf_use_builtin_protection",     true, false, false, "Use builtin protection")
-Config.UseBuiltinFlagRendering = createConvarField("Bool", "b2ctf_use_builtin_flag_rendering", true, false, false, "Use builtin flag rendering")
-Config.UseBuiltinHUDRendering =  createConvarField("Bool", "b2ctf_use_builtin_hud_rendering",  true, false, false, "Use builtin HUD rendering")
+Config.UseBuiltinProtection =         createConvarField("Bool", "b2ctf_use_builtin_protection",          true, false, false, "Use builtin protection")
+Config.UseBuiltinFlagRendering =      createConvarField("Bool", "b2ctf_use_builtin_flag_rendering",      true, false, false, "Use builtin flag rendering")
+Config.UseBuiltinHUDRendering =       createConvarField("Bool", "b2ctf_use_builtin_hud_rendering",       true, false, false, "Use builtin HUD rendering")
+Config.UseBuiltinBoundaryRendering =  createConvarField("Bool", "b2ctf_use_builtin_boundary_rendering",  true, false, false, "Use builtin boundary rendering")
 
 Config.EnablePlayerReadyShort =    createConvarField("Bool", "b2ctf_enable_player_ready_short",     true,  false, false, "Allow players to skip short phases phase by stating that they are ready")
 Config.EnablePlayerReadyBuild =    createConvarField("Bool", "b2ctf_enable_player_ready_build",     false, false, false, "Allow players to skip the build phase by stating that they are ready")
