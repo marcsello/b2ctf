@@ -16,12 +16,7 @@ AddCSLuaFile("cl_limits.lua")
 AddCSLuaFile("sh_flag_protect.lua")
 AddCSLuaFile("concommands/cl_init.lua")
 AddCSLuaFile("sh_sandbox.lua") -- Included by sandbox.lua and cl_sandbox.lua
-
-
--- If there is a mapfile send it to the client (we define b2ctf specific settings here)
-if file.Exists("b2ctf/gamemode/maps/" .. game.GetMap() .. ".lua", "LUA") then
-    AddCSLuaFile("maps/" .. game.GetMap() .. ".lua")
-end
+AddCSLuaFile("sh_map_config.lua")
 
 -- Run other server-side scripts
 include("shared.lua")
