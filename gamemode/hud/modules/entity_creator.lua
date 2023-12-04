@@ -7,10 +7,19 @@ local entityCreator = {
     creatorTeamColor = nil,
     creatorTeamName = nil,
     creatorNick = nil,
+    nameX = nil,
+    nameY = nil,
+    teamX = nil,
+    teamY = nil,
+    boxX = nil,
+    boxY = nil,
+    boxW = nil,
+    boxH = nil,
 }
 
 function entityCreator:Draw()
     -- calculate stuff
+    local recalculateStuff = false
     local lEnt = LocalPlayer():GetEyeTrace().Entity -- get the looked at entity
     if self.lastLookedEntity ~= lEnt then -- if it's changed, then update the cached vars
         local lEntCreator = lEnt:B2CTFGetCreator()
@@ -19,6 +28,7 @@ function entityCreator:Draw()
             self.creatorTeamName = team.GetName(lEntCreator:Team())
             self.creatorNick = lEntCreator:Nick()
             self.shouldDraw = true
+            recalculateStuff = true
         else
             self.creatorTeamColor = nil
             self.creatorTeamName = nil
@@ -30,50 +40,49 @@ function entityCreator:Draw()
     if not self.shouldDraw then return end -- nothing to draw here
 
     -- draw
-    -- just kidding calculate some more...
     surface.SetFont("DermaDefault")
-    local nameW, nameH = surface.GetTextSize( self.creatorNick )
-    local teamW, teamH = surface.GetTextSize( self.creatorTeamName )
 
-    local boxW = math.max(nameW, teamW) + 15 -- 5 left, 10 right
-    local boxH = nameH + teamH + 10 -- 5 above, 5 bellow
-    local boxX = ScrW() - boxW
-    local boxY = ScrH() * 0.4
+    if recalculateStuff then
+        -- just kidding calculate some more...
+        local nameW, nameH = surface.GetTextSize( self.creatorNick )
+        local teamW, teamH = surface.GetTextSize( self.creatorTeamName )
 
-    surface.SetDrawColor(0,0,0,128)
-    surface.DrawRect(boxX, boxY, boxW, boxH)
+        self.boxW = math.max(nameW, teamW) + 15 -- 5 left, 10 right
+        self.boxH = nameH + teamH + 10 -- 5 above, 5 bellow
+        self.boxX = ScrW() - self.boxW
+        self.boxY = ScrH() * 0.4
 
-    local nameX = ScrW() - nameW - 10
-    local nameY = ScrH() * 0.4 + 5
+        self.nameX = ScrW() - nameW - 10
+        self.nameY = ScrH() * 0.4 + 5
 
-    local teamX = ScrW() - math.max(teamW, nameW) - 10
-    local teamY = ScrH() * 0.4 + 5 + teamH
+        self.teamX = ScrW() - math.max(teamW, nameW) - 10
+        self.teamY = ScrH() * 0.4 + 5 + teamH
+    end
 
     -- now we are drawing
+
+    -- box
+    surface.SetDrawColor(0,0,0,128)
+    surface.DrawRect(self.boxX, self.boxY, self.boxW, self.boxH)
+
     -- Owner
     surface.SetTextColor(0, 0, 0, 255)
-    surface.SetTextPos(nameX + 1, nameY + 1)
+    surface.SetTextPos(self.nameX + 1, self.nameY + 1)
     surface.DrawText(self.creatorNick, false)
 
     surface.SetTextColor(255, 255, 255, 255)
-    surface.SetTextPos(nameX, nameY)
+    surface.SetTextPos(self.nameX, self.nameY)
     surface.DrawText(self.creatorNick, false)
 
     -- Team
-    surface.SetTextPos(teamX + 1, teamY + 1)
+    surface.SetTextPos(self.teamX + 1, self.teamY + 1)
     surface.DrawText(self.creatorTeamName, false)
 
     surface.SetTextColor(self.creatorTeamColor:Unpack())
-    surface.SetTextPos(teamX, teamY)
+    surface.SetTextPos(self.teamX, self.teamY)
     surface.DrawText(self.creatorTeamName, false)
 
 
 end
-
-function entityCreator:Init()
-
-
-end
-
 
 return entityCreator

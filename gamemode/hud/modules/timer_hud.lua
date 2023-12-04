@@ -38,12 +38,12 @@ function timerHUD:Init()
     self.basePoly = transformPoly(basePoly, ScrW() / 2 - self.w / 2, 0)
 
     surface.CreateFont( "B2CTF_HUD_Timer_Phase", {
-        font = "Arial", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
+        font = "Arial",
         size = self.h * 0.6,
     } )
 
     surface.CreateFont( "B2CTF_HUD_Timer_Time", {
-        font = "RobotoBold", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
+        font = "RobotoBold",
         size = self.h * 0.4,
     } )
 
@@ -122,11 +122,11 @@ function timerHUD:Draw()
 
 end
 
-function timerHUD:UpdateInfo(phaseName, startTime, endTime, warnTime)
-    self.phaseName = phaseName
+function timerHUD:OnPhaseChanged(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
+    self.phaseName = newPhaseInfo.name
     self.startTime = startTime
     self.endTime = endTime
-    self.warnTime = warnTime
+    self.warnTime = newPhaseInfo.warnTime
 end
 
 

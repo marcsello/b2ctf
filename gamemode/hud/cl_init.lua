@@ -4,37 +4,28 @@ if not Config.UseBuiltinHUDRendering then
     return
 end
 
-local timerHUD = include("modules/timer_hud.lua")
-local homeIndicator = include("modules/home_indicator.lua")
-local entityCreator = include("modules/entity_creator.lua")
+-- Create the hudManager singleton
+local hudManager = include("cl_hud_manager.lua")
 
--- Init stuff
-timerHUD:Init()
+-- register elements
+hudManager:RegisterElement("B2CTFTimerHUD", include("modules/timer_hud.lua"))
+hudManager:RegisterElement("B2CTFHomeIndicator", include("modules/home_indicator.lua"))
+hudManager:RegisterElement("B2CTFFlagsIndicator", include("modules/flags_indicator.lua"))
+hudManager:RegisterElement("B2CTFEntityCreator", include("modules/entity_creator.lua"))
 
--- Hack: it is possible that a client might miss the initial phase transition because of how files loaded in order
-local currentPhaseInfo = Phaser:CurrentPhaseInfo()
-if currentPhaseInfo then
-    timerHUD:UpdateInfo(currentPhaseInfo.name, Phaser:CurrentPhaseStart(), Phaser:CurrentPhaseEnd(), currentPhaseInfo.warnTime)
-end
+-- Hook up the hud manager...
+hook.Add("InitPostEntity", "B2CTF_InitHUDManager", function()
+    hudManager:Init()
+end )
 
-homeIndicator:Init()
-entityCreator:Init()
+hook.Add("OnReloaded", "B2CTF_ReinitHUDManager", function()
+    hudManager:Init()
+end )
 
--- Setup hooks
-local function DrawB2CTFHUD()
-    if hook.Run("HUDShouldDraw", GAMEMODE, "B2CTFTimer") then
-        timerHUD:Draw()
-    end
-    if hook.Run("HUDShouldDraw", GAMEMODE, "B2CTFHomeIndicator") then
-        homeIndicator:Draw()
-    end
-    if hook.Run("HUDShouldDraw", GAMEMODE, "B2CTFEntityCreator") then
-        entityCreator:Draw()
-    end
-
-end
-hook.Add("HUDPaint", "B2CTF_HUD", DrawB2CTFHUD)
+hook.Add("HUDPaint", "B2CTF_HUDDraw", function()
+    hudManager:Draw()
+end )
 
 hook.Add("B2CTF_PhaseChanged", "UpdateHudValues", function(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
-    timerHUD:UpdateInfo(newPhaseInfo.name, startTime, endTime, newPhaseInfo.warnTime)
+    hudManager:OnPhaseChanged(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
 end )

@@ -9,8 +9,11 @@ local homeIndicator = {
 }
 
 function homeIndicator:Draw()
+    local ply = LocalPlayer()
+    if not (IsValid(ply) and ply:TeamValid()) then return end
+
     surface.SetDrawColor(255, 255, 255, 255)
-    if LocalPlayer():AtHome() then -- AtHome is quick to read
+    if ply:AtHome() then -- AtHome is quick to read
         surface.SetMaterial(self.homeSymbol)
     else
         surface.SetMaterial(self.homeSymbolAway)
