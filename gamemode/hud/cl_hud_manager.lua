@@ -16,13 +16,14 @@ function hudManager:Init()
         end
     end
 
+    self.initialized = true -- otherwise the following hacked OnPhaseChanged would do nothing...
+
     -- Hack: it is possible that a client might miss the initial phase transition because of how files loaded in order
     local currentPhaseInfo = Phaser:CurrentPhaseInfo()
+    print(currentPhaseInfo)
     if currentPhaseInfo then
         self:OnPhaseChanged(Phaser:CurrentPhaseID(), currentPhaseInfo, nil, nil, Phaser:CurrentPhaseStart(), Phaser:CurrentPhaseEnd())
     end
-
-    self.initialized = true
 end
 
 function hudManager:Draw()
