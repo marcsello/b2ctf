@@ -20,7 +20,6 @@ function hudManager:Init()
 
     -- Hack: it is possible that a client might miss the initial phase transition because of how files loaded in order
     local currentPhaseInfo = Phaser:CurrentPhaseInfo()
-    print(currentPhaseInfo)
     if currentPhaseInfo then
         self:OnPhaseChanged(Phaser:CurrentPhaseID(), currentPhaseInfo, nil, nil, Phaser:CurrentPhaseStart(), Phaser:CurrentPhaseEnd())
     end

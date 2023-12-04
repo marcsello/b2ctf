@@ -123,7 +123,6 @@ function timerHUD:Draw()
 end
 
 function timerHUD:OnPhaseChanged(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
-    print("LOFASZ: phase cahanged called")
     self.phaseName = newPhaseInfo.name
     self.startTime = startTime
     self.endTime = endTime
