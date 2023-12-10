@@ -1,6 +1,9 @@
 -- Team site related restrictions
 local outOfBoundsWarningColor = Color(255, 0, 0)
 
+local HOMESICK_PLAYER_DAMAGE = 15
+local HOMESICK_PLAYER_HIGH_DAMAGE = 250 -- damage to apply when the player goes too far
+local HOMESICK_PLAYER_HIGH_DAMAGE_DISTANCE = 4000 -- sqr units, if a player goes beyond this distance from the base, we apply HOMESICK_PLAYER_HIGH_DAMAGE damage per trigger instead of the above defined one
 local HOMESICK_ENTITY_REMOVE_TIMEOUT = 3 -- sec
 local HOMESICK_ENTITY_INSTANT_DELETE_DISTANCE = 4000 -- sqr units, if an entity goes beyond this distance from the (base's center + base's diameter), it will be deleted immediately
 local HOMESICK_ENTITY_PROCESS_BATCH_SIZE_PER_THINK = 5 -- run this many checks each think
@@ -22,20 +25,30 @@ end )
 timer.Create("B2CTF_HomeSicknessHurts", 0.75, 0, function()
     if not Phaser:CurrentPhaseInfo().homeSickness then return end -- run only if current phase cause home-sickness
 
-    for _, v in ipairs( player.GetAll() ) do
-        if not (v and IsValid(v) and v:Alive()) then continue end
-        if not v:AtHome() then
-            local target = v
-            local vehicle = v:GetVehicle()
-            if vehicle and IsValid(vehicle) then
+    for _, ply in ipairs(player.GetAll()) do
+        if not (IsValid(ply) and ply:Alive() and ply:TeamValid()) then continue end
+        if not ply:AtHome() then
+            local t = B2CTF_MAP.teams[ply:Team()]
+            assert(t ~= nil, "Could not match team config for team id")
+
+            local plyDistSqr = t.boundaries._center:DistToSqr(ply:GetPos())
+
+            local damageAmount = HOMESICK_PLAYER_DAMAGE
+            if plyDistSqr > (t.boundaries._sizeSqr + HOMESICK_PLAYER_HIGH_DAMAGE_DISTANCE) then
+                damageAmount = HOMESICK_PLAYER_HIGH_DAMAGE
+            end
+
+            local target = ply
+            local vehicle = ply:GetVehicle()
+            if IsValid(vehicle) then
                 target = vehicle
             end
 
             local d = DamageInfo()
-            d:SetDamage( 15 )
-            d:SetAttacker( v )
-            d:SetDamageType( DMG_DISSOLVE )
-            target:TakeDamageInfo( d ) -- Jajj úristen Trianon de kurvára fáj, jajj Jézusom
+            d:SetDamage(damageAmount)
+            d:SetAttacker(ply)
+            d:SetDamageType(DMG_DISSOLVE)
+            target:TakeDamageInfo(d) -- Jajj úristen Trianon de kurvára fáj, jajj Jézusom
         end
     end
 end )
@@ -62,7 +75,7 @@ local function homeSickProcessEnt(ent --[[=Entity ]])
     if (not entCreator) or (not IsValid(entCreator)) or (not entCreator:IsPlayer()) or (not entCreator:TeamValid()) then return end
 
     local t = B2CTF_MAP.teams[entCreator:Team()]
-    if t == nil then return end
+    assert(t ~= nil, "Could not match team config for team id")
 
     local entPos = ent:GetPos()
 
