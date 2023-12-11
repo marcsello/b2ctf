@@ -6,3 +6,4 @@ include("cl_boundaries.lua")
 include("cl_limits.lua")
 -- cl_flag.lua is included from sh_flag.lua
 include("concommands/cl_init.lua")
+include("cl_scoreboard.lua")

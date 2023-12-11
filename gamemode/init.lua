@@ -17,6 +17,7 @@ AddCSLuaFile("sh_flag_protect.lua")
 AddCSLuaFile("concommands/cl_init.lua")
 AddCSLuaFile("sh_sandbox.lua") -- Included by sandbox.lua and cl_sandbox.lua
 AddCSLuaFile("sh_map_config.lua")
+AddCSLuaFile("cl_scoreboard.lua")
 
 -- Run other server-side scripts
 include("shared.lua")
