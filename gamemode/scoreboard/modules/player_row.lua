@@ -105,7 +105,7 @@ local playerRowTable = {
 
         if not self._teamID then
             -- should never display score and deaths
-            self.Kills:SetText("")
+            self.Score:SetText("")
             self.Deaths:SetText("")
         end
 
