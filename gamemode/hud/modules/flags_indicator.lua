@@ -17,7 +17,6 @@ local flagsIndicator = {
     battleIndicatorCardH = 32,
 
     -- assets
-    flagIcons = nil,
     iconTaken = nil,
     iconDropped = nil,
     iconReturned = nil,
@@ -54,7 +53,7 @@ end
 
 function flagsIndicator:_drawSmall(ply)
     surface.SetDrawColor(255, 255, 255, 255)
-    surface.SetMaterial(self.flagIcons[ply:Team()])
+    surface.SetMaterial(B2CTF_MAP.teams[ply:Team()]._iconMat)
     surface.DrawTexturedRect(self.homeTeamIconX, self.homeTeamIconY, self.iconSize, self.iconSize)
 end
 
@@ -85,7 +84,7 @@ function flagsIndicator:_drawBig(ply)
         surface.SetDrawColor(255,255,255,255)
 
         -- the flag icon itself
-        surface.SetMaterial(self.flagIcons[teamID])
+        surface.SetMaterial(B2CTF_MAP.teams[teamID]._iconMat)
         surface.DrawTexturedRect(self.battleIndicatorsX, self.battleIndicatorsStartY - shiftUp, self.iconSize, self.iconSize)
 
         -- Status icon
@@ -145,10 +144,6 @@ function flagsIndicator:Draw()
 end
 
 function flagsIndicator:Init()
-    self.flagIcons = {}
-    for i, v in ipairs(B2CTF_MAP.teams) do
-        self.flagIcons[i] = Material(v.icon)
-    end
     self.iconTaken = Material("icon16/arrow_turn_right.png")
     self.iconDropped = Material("icon16/arrow_down.png")
     self.iconReturned = Material("icon16/arrow_undo.png")

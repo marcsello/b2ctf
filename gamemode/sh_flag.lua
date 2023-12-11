@@ -66,6 +66,7 @@ function FlagManager:GetFlagInfoGrabbedByPlayer(ply)
     if flagID then
         return self.flags[flagID]
     end
+    return nil
 end
 
 function FlagManager:GetFlagIDsGrabbedByTeam(teamID) -- returns: array

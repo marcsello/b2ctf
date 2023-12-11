@@ -59,18 +59,35 @@ local teamContainerTable = {
         self.TeamScore:DockMargin( 0, 0, 136, 0 )
 
         self.Scores = self:Add("DListLayout")
-        self.Scores:Dock( TOP )
+        self.Scores:Dock(TOP)
+        self.Scores:SetHeight(0) -- it is empty initially, so make it zero height
+
+        -- Make it recalculate the height when a player row is added or removed
         self.Scores.GetContentSize = calcContentSizeByHeight(0)
+        self.Scores.OnChildRemoved = function(s)
+            -- Resize itself, and the team container when a player leaves
+            s:SizeToContentsY()
+            self:SizeToContentsY()
+        end
+        self.Scores.OnChildAdded = function(s)
+            -- Resize itself, and the team container when a player joins
+            s:SizeToContentsY()
+            self:SizeToContentsY()
+        end
+
+        -- set the correct height initially
+        self:SizeToContentsY() -- so that it would show up well initially on empty teams as well
 
         -- force an instant update with these defaults
-        self.PlayerCount = -1
-        self.LastScore = -1000
+        self._playerCount = -1
+        self._lastScore = -1000
     end,
 
     Setup = function(self, teamID, persistent)
-        self.teamID = teamID
-        self.Persistent = persistent
-        if self.teamID then
+        self._teamID = teamID
+        self._persistent = persistent
+
+        if self._teamID then
             self.TeamName:SetText(team.GetName(teamID))
             self.color = team.GetColor(teamID)
         else
@@ -91,9 +108,9 @@ local teamContainerTable = {
         surface.DrawOutlinedRect( 0, 0, w, h, 1)
     end,
 
-    GetAssignedPlayers = function(self)
-        if self.teamID then -- 0 is truthy in Lua
-            return team.GetPlayers(self.teamID)
+    GetMembers = function(self)
+        if self._teamID then -- 0 is truthy in Lua
+            return team.GetPlayers(self._teamID)
         else
             -- Gather the players in "invalid" teams
             local players = {}
@@ -109,19 +126,19 @@ local teamContainerTable = {
 
     Think = function(self)
 
-        -- self destruct when it becomes empty
-        if (not self.Persistent) and (self.teamID ~= nil and team.NumPlayers(self.teamID) == 0) then
-            self:SetZPos( 9999 ) -- Causes a rebuild
+        -- self destruct when it becomes empty, and is not persistent
+        if (not self._persistent) and (self._teamID ~= nil and team.NumPlayers(self._teamID) == 0) then
+            self:SetZPos(9999) -- Causes a rebuild
             self:Remove()
             return
         end
 
-        local players = self:GetAssignedPlayers()
+        local players = self:GetMembers()
 
         for _, ply in ipairs(players) do
 
             if IsValid(ply.ScoreBoardEntry) then
-                if ply.ScoreBoardEntry.TeamID == self.teamID then
+                if ply.ScoreBoardEntry:GetTeamID() == self._teamID then
                     -- still in the seam team, and still have a valid entry
                     continue
                 else
@@ -132,27 +149,25 @@ local teamContainerTable = {
             end
 
             ply.ScoreBoardEntry = vgui.CreateFromTable( playerRow, ply.ScoreBoardEntry )
-            ply.ScoreBoardEntry:Setup(ply, self.teamID)
+            ply.ScoreBoardEntry:Setup(ply, self._teamID)
 
-            self.Scores:Add(ply.ScoreBoardEntry)
+            self.Scores:Add(ply.ScoreBoardEntry) -- should automatically resize itself
         end
 
-        if self.PlayerCount ~= #players then
+        if self._playerCount ~= #players then
             self.TeamPlayers:SetText(#players .. " Players")
-            self.Scores:SizeToContentsY()
-            self:SizeToContentsY()
-            self.PlayerCount = #players
+            self._playerCount = #players
         end
 
-        if self.teamID then
+        if self._teamID then
             -- Team with higher score should be upper
-            self:SetZPos(team.GetScore(self.teamID) * -50 + self.teamID)
+            self:SetZPos(team.GetScore(self._teamID) * -50 + self._teamID)
 
 
-            local score = team.GetScore(self.teamID)
-            if self.LastScore ~= score then
+            local score = team.GetScore(self._teamID)
+            if self._lastScore ~= score then
                 self.TeamScore:SetText(score .. "")
-                self.LastScore = score
+                self._lastScore = score
             end
         end
 

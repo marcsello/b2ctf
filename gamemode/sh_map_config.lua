@@ -53,4 +53,7 @@ for i, teamData in ipairs(B2CTF_MAP.teams) do
     B2CTF_MAP.teams[i].boundaries._center = Vector(centerX, centerY, centerZ)
     B2CTF_MAP.teams[i].boundaries._size = size
     B2CTF_MAP.teams[i].boundaries._sizeSqr = size^2
+    if CLIENT then
+        B2CTF_MAP.teams[i]._iconMat = Material(B2CTF_MAP.teams[i].icon)
+    end
 end

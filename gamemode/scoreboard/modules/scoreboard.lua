@@ -72,12 +72,12 @@ local scoreBoardTable = {
         self.TeamsPanel = self:Add( "DScrollPanel" )
         self.TeamsPanel:Dock( FILL )
 
-        self.Teams = {}
+        self_teamContainers = {}
 
         -- Set up the persistent "everything else" team, other teams will be created on demand
-        self.Teams[-1] = vgui.CreateFromTable(teamContainer, self.TeamsPanel, "everyone else")
-        self.Teams[-1]:Setup(nil, true)
-        self.TeamsPanel:AddItem(self.Teams[-1])
+        self_teamContainers[-1] = vgui.CreateFromTable(teamContainer, self.TeamsPanel, "everyone else")
+        self_teamContainers[-1]:Setup(nil, true)
+        self.TeamsPanel:AddItem(self_teamContainers[-1])
 
     end,
 
@@ -105,16 +105,17 @@ local scoreBoardTable = {
         end
 
         for teamID, teamInfo in pairs(team.GetAllTeams()) do
-            if (teamID > 0) and (teamID < 1000) and team.Valid(teamID) then -- we cheat here
+            if (teamID > 0) and (teamID < 1000) and team.Valid(teamID) then
                 if (team.NumPlayers(teamID) > 0) then
-                    if not IsValid(self.Teams[teamID]) then
-                        self.Teams[teamID] = vgui.CreateFromTable( teamContainer, self.TeamsPanel, teamInfo.Name)
-                        self.Teams[teamID]:Setup(teamID, false)
-                        self.TeamsPanel:AddItem(self.Teams[teamID])
+                    if not IsValid(self_teamContainers[teamID]) then
+                        self_teamContainers[teamID] = vgui.CreateFromTable( teamContainer, self.TeamsPanel, teamInfo.Name)
+                        self_teamContainers[teamID]:Setup(teamID, false)
+                        self.TeamsPanel:AddItem(self_teamContainers[teamID])
                     end
                 else
-                    if self.Teams[teamID] and (not self.Teams[teamID].Persistent) then
-                        self.Teams[teamID] = nil -- Team become empty, and it is not persistent, remove it from the list
+                    if (self_teamContainers[teamID] ~= nil) and (not IsValid(self_teamContainers[teamID])) then
+                         -- The team container probably self destructed. Remove the reference as we no longer need it (it wouldn't be problem if we left it in there, but whatever)
+                        self_teamContainers[teamID] = nil
                     end
                 end
             end
