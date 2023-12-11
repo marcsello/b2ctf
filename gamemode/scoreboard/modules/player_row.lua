@@ -68,6 +68,13 @@ local playerRowTable = {
         self.Score:SetExpensiveShadow( 2, Color( 0, 0, 0, 200 ) )
         self.Score:SetText("?")
 
+        self.Flag = self:Add( "DImage" )
+        self.Flag:Dock(RIGHT)
+        self.Flag:DockMargin( 0, 3, 0, 3 )
+        self.Flag:SetWidth(32 - 2 * 3)
+        self.Flag:SetContentAlignment(5)
+        self.Flag:Hide()
+
         self.Status = self:Add( "DLabel" )
         self.Status:Dock( RIGHT )
         self.Status:SetWidth( 250 )
@@ -76,12 +83,6 @@ local playerRowTable = {
         self.Status:SetContentAlignment( 5 )
         self.Status:SetExpensiveShadow( 2, Color( 0, 0, 0, 200 ) )
         self.Status:SetText("?")
-
-        self.Flag = self:Add( "DImage" )
-        self.Flag:Dock(RIGHT)
-        self.Flag:SetSize(32, 32)
-        self.Flag:SetContentAlignment(5)
-        self.Flag:Hide()
 
         self:Dock( TOP )
         self:DockPadding( 3, 3, 3, 3 )
@@ -170,6 +171,7 @@ local playerRowTable = {
                 if flagID then
                     self.Flag:SetMaterial(B2CTF_MAP.teams[flagID]._iconMat)
                     self.Flag:Show()
+                    print(self.Flag:GetTall())
                 else
                     self.Flag:Hide()
                 end
@@ -197,9 +199,9 @@ local playerRowTable = {
 
             self.Muted = self._player:IsMuted()
             if ( self.Muted ) then
-                self.Mute:SetImage( "icon32/muted.png" )
+                self.Mute:SetImage("icon32/muted.png")
             else
-                self.Mute:SetImage( "icon32/unmuted.png" )
+                self.Mute:SetImage("icon32/unmuted.png")
             end
 
             self.Mute.DoClick = function( s ) self._player:SetMuted( not self.Muted ) end

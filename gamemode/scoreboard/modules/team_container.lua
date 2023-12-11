@@ -17,7 +17,7 @@ local teamContainerTable = {
 
     Init = function(self)
 
-        self:DockMargin( 1, 1, 1, 1 )
+        self:DockMargin( 1, 1, 1, 4 )
         self:Dock(TOP)
 
         self.Header = self:Add("DPanel")
@@ -30,9 +30,15 @@ local teamContainerTable = {
             surface.DrawRect( 0, 0, w, h)
         end
 
+        self.TeamIcon = self.Header:Add( "DImage" )
+        self.TeamIcon:Dock(LEFT)
+        self.TeamIcon:SetWide(32 - 3 * 2)
+        self.TeamIcon:SetContentAlignment(5)
+        self.TeamIcon:DockMargin( 3, 3, 0, 3 )
+
         self.TeamName = self.Header:Add("DLabel")
         self.TeamName:Dock( LEFT )
-        self.TeamName:SetWide(120)
+        self.TeamName:SetWide(150)
         self.TeamName:SetFont( "DermaLarge" )
         self.TeamName:SetTextColor( color_white )
         self.TeamName:SetContentAlignment( 4 )
@@ -89,6 +95,7 @@ local teamContainerTable = {
 
         if self._teamID then
             self.TeamName:SetText(team.GetName(teamID))
+            self.TeamIcon:SetMaterial(B2CTF_MAP.teams[teamID]._iconMat)
             self.color = team.GetColor(teamID)
         else
             self.TeamName:SetText("Spectator")
