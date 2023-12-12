@@ -5,7 +5,7 @@ return {
             description = "",
             color = Color(255, 60, 60, 255),
             icon = "icon16/flag_red.png",
-            boundaries = {Vector(-10030, 10861, 1900), Vector(-15010, 14843, 3000)},
+            boundaries = {Vector(-10030, 10832, 1900), Vector(-15010, 14843, 3000)},
             spawnPoints = {Vector(-12704.3, 13920.6, 2058.71), Vector(-12702.8, 14175.7, 2058.71), Vector(-12704.2, 14432.7, 2058.71)},
             flagPos = Vector(-11221.1, 9149.8, 2180.428),
         },
