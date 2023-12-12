@@ -76,6 +76,8 @@ local function reassignStuff(ply, teamID, isPlyLeftTheGame)
     local msg = nil
     if newPly and IsValid(newPly) then
         -- found someone to have stuff reassigned to
+
+        -- First, reassign the ownership tracked by B2CTF
         local anythingReassigned = false
         for _, v in ipairs(ents.GetAll()) do -- TODO: Replace with ents.Iterator() when released
             if v:B2CTFGetCreator() == ply then
@@ -90,7 +92,7 @@ local function reassignStuff(ply, teamID, isPlyLeftTheGame)
             end
         end
 
-        -- clean player's undo list if they changed teams, and their stuff got re-assigned
+        -- Second, clean player's undo list if they changed teams, and their stuff got re-assigned
         -- If their stuff is not getting re-assigned then it is going to be deleted anyway 
         -- so we don't care about the undo list in that case
         local plyUID = ply:UniqueID() -- the id if the player who left the team
@@ -101,24 +103,31 @@ local function reassignStuff(ply, teamID, isPlyLeftTheGame)
             ply:SendLua("table.Empty(undo.GetTable()) undo.MakeUIDirty()")
         end
 
-        -- copy items from the players cleanup list to the new players cleanup list
+        -- Lastly, copy items from the players cleanup list to the new players cleanup list
         -- so when they press clean up everything, their newly assigned props will be cleaned up as well
-        local cleanupListToBeReassigned = cleanup.GetList()[plyUID]
-        local newPlyUID = newPly:UniqueID()
-        if not cleanup.GetList()[newPlyUID] then
-            cleanup.GetList()[newPlyUID] = {}
-        end
-        for undoType, undoList in pairs(cleanupListToBeReassigned) do
-            if not cleanup.GetList()[newPlyUID][undoType] then
-                cleanup.GetList()[newPlyUID][undoType] = {}
+        -- because cleanup lists are created on-demand, they can be nil if the player never spawned anything
+        local cleanupListToBeReassigned = cleanup.GetList()[plyUID] -- <- can be nil
+        if cleanupListToBeReassigned then
+            -- only do the re-assignment of the cleanup list if the player had anything to be re-assigned
+            local newPlyUID = newPly:UniqueID()
+
+            if not cleanup.GetList()[newPlyUID] then -- create the undo list if it's not present already
+                cleanup.GetList()[newPlyUID] = {}
             end
-            for _, undoItem in ipairs(undoList) do
-                if IsValid(undoItem) then -- sometimes when the entites are removed they are not cleaned up from the cleanup list, prevent cluttering the new player's cleanup list with those
-                    table.insert(cleanup.GetList()[newPlyUID][undoType], undoItem)
+
+            for undoType, undoList in pairs(cleanupListToBeReassigned) do
+                if not cleanup.GetList()[newPlyUID][undoType] then
+                    cleanup.GetList()[newPlyUID][undoType] = {}
+                end
+                for _, undoItem in ipairs(undoList) do
+                    if IsValid(undoItem) then -- sometimes when the entites are removed they are not cleaned up from the cleanup list, prevent cluttering the new player's cleanup list with those
+                        table.insert(cleanup.GetList()[newPlyUID][undoType], undoItem)
+                    end
                 end
             end
+
+            cleanup.GetList()[plyUID] = nil -- remove old list
         end
-        cleanup.GetList()[plyUID] = {} -- clean old list
 
         if anythingReassigned then msg = ply:Nick() .. " has left team " .. teamName .. ". Their stuff is reassigned to " .. newPly:Nick() end
     else
