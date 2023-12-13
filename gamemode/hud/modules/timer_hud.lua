@@ -18,12 +18,6 @@ local timerHUD = {
     h = 40,
     slopeSize = 35,
     border = 4,
-
-    -- placeholders
-    phaseName = "",
-    startTime = 0,
-    endTime = 0,
-    warnTime = 0,
 }
 
 function timerHUD:Init()
@@ -84,18 +78,19 @@ function timerHUD:_calcFillPoly(length)
 end
 
 function timerHUD:Draw()
+    -- Get data
+    local phaseInfo = Phaser:CurrentPhaseInfo()
     -- calculate stuff
-    local timeLeft = self.endTime - CurTime()
+    local timeLeft = Phaser:CurrentPhaseTimeLeft()
     if timeLeft < 0 then
         timeLeft = 0
     end
-    local phaseTime = self.endTime - self.startTime
-    local length = self.w * (timeLeft / phaseTime)
+    local length = self.w * (timeLeft / phaseInfo.time)
     local fillPoly = self:_calcFillPoly(length) -- this might be a little costy, but there is not real benefit to move it out
     local minutesLeft = math.floor(timeLeft / 60)
     local secondsLeft = math.floor(timeLeft % 60)
     local timeLeftText = string.format("%02d:%02d", minutesLeft, secondsLeft)
-    local blink = (timeLeft < self.warnTime) and (CurTime() - math.floor(CurTime()) > 0.5)
+    local blink = (timeLeft < phaseInfo.warnTime) and (CurTime() - math.floor(CurTime()) > 0.5)
 
     -- draw stuff
     draw.NoTexture()
@@ -107,9 +102,9 @@ function timerHUD:Draw()
 
 
     surface.SetFont("B2CTF_HUD_Timer_Phase")
-    local textW, textH = surface.GetTextSize(self.phaseName)
+    local textW, textH = surface.GetTextSize(phaseInfo.name)
     surface.SetTextPos(ScrW() / 2 - textW / 2, 0)
-    surface.DrawText(self.phaseName, false)
+    surface.DrawText(phaseInfo.name, false)
 
     if blink then
         surface.SetTextColor(255, 0, 0, 255)
@@ -120,13 +115,6 @@ function timerHUD:Draw()
     surface.SetTextPos(ScrW() / 2 - textW / 2, textH)
     surface.DrawText(timeLeftText, false)
 
-end
-
-function timerHUD:OnPhaseChanged(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
-    self.phaseName = newPhaseInfo.name
-    self.startTime = startTime
-    self.endTime = endTime
-    self.warnTime = newPhaseInfo.warnTime
 end
 
 

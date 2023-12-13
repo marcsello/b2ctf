@@ -35,6 +35,7 @@ function hudManager:Draw()
 end
 
 function hudManager:OnPhaseChanged(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
+    -- This should only be used to show phase change event-related stuff, OnPhaseChanged is not called when times update for example
     if not self.initialized then return end
     for _, element in pairs(self.elements) do
         if element["OnPhaseChanged"] then

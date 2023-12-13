@@ -22,7 +22,6 @@ local flagsIndicator = {
     iconReturned = nil,
 
     -- values updated externally
-    isBuildingPhase = false,
     flagsReturnedRecently = {},
     teamsScoredRecently = {}
 }
@@ -134,8 +133,8 @@ function flagsIndicator:Draw()
     local ply = LocalPlayer()
     if not (IsValid(ply) and ply:TeamValid()) then return end
 
-    if self.isBuildingPhase then
-        -- In building phase, just draw a small team icon
+    if not Phaser:CurrentPhaseInfo().fightAllowed then
+        -- Not in war, just draw a small team icon
         flagsIndicator:_drawSmall(ply)
     else
         -- During battle, draw everything
@@ -152,10 +151,6 @@ function flagsIndicator:Init()
         font = "Arial",
         size = 32,
     } )
-end
-
-function flagsIndicator:OnPhaseChanged(newPhaseID, newPhaseInfo, oldPhaseID, oldPhaseInfo, startTime, endTime)
-    self.isBuildingPhase = newPhaseInfo.buildAllowed
 end
 
 function flagsIndicator:_indicateReturn(flagID)
