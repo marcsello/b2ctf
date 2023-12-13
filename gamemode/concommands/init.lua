@@ -4,7 +4,7 @@ AddCSLuaFile("print_debug_info.lua")
 local function resetGame( ply )
     if not ((not ply:IsValid()) or (ply:IsAdmin())) then return end
     print("Resetting game...")
-    GAMEMODE:ResetGame()
+    hook.Run("ResetGame") -- normally, we don't expect this to be overridden, but this is the standard way of doing things
 end
 concommand.Add("b2ctf_reset_game", resetGame, nil, "Clanup map, reset phase and force all players to choose team again", 0)
 
