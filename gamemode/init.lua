@@ -38,11 +38,16 @@ function GM:ResetGame()
     FlagManager:Reset()
 
     -- Reset team scores
-    for i, v in pairs(team.GetAllTeams()) do  -- teams aren't a continous array, so we need pairs instead of ipairs
-        team.SetScore( i, 0 ) -- yes, this resets spectators, connecting etc. scores too
+    for i, _ in pairs(team.GetAllTeams()) do  -- teams aren't a continous array, so we need pairs instead of ipairs
+        team.SetScore(i, 0) -- yes, this resets spectators, connecting etc. scores too
     end
 
-    -- TODO: Reset player stats? and unassign them from their teams?
+    -- Reset player scores
+    for _, p in ipairs(player.GetAll()) do
+        p:SetFrags(0)
+        p:SetDeaths(0)
+    end
+    -- TODO: unassign them from their teams?
 
     -- Cleanup things (copied from here: https://github.com/Facepunch/garrysmod/blob/e189f14c088298ca800136fcfcfaf5d8535b6648/garrysmod/lua/includes/modules/cleanup.lua#L148)
     for key, ply in pairs( cleanup.GetList() ) do
@@ -283,7 +288,7 @@ hook.Add( "PlayerShouldTakeDamage", "B2CTF_BuildersShouldNotFight", function( pl
 
 end )
 
-hook.Add( "CanPlayerSuicide", "B2CTF_SpectatorsShouldntSuicide", function( ply )
+hook.Add("CanPlayerSuicide", "B2CTF_SpectatorsShouldntSuicide", function( ply )
     if not (ply and IsValid(ply) and ply:TeamValid()) then return false end -- players without a valid team should not be able to suicide
 end )
 
