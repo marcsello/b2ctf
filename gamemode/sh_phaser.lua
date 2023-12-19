@@ -5,7 +5,7 @@ if SERVER then
 end
 
 -- Setup some global vars, functions
-GAME_PHASE_PREBUILD = 1
+GAME_PHASE_PREBUILD = 1 -- post war
 GAME_PHASE_BUILD = 2
 GAME_PHASE_PREWAR = 3
 GAME_PHASE_WAR = 4
@@ -95,12 +95,12 @@ function Phaser:ForceNext()
     self:_update(self.next_phase_id, startTime, startTime + GAME_PHASE_INFO[self.next_phase_id].time, false)
 end
 
-function Phaser:_think()
-    if CLIENT then return end -- this should be server side only
-    if self.end_time < CurTime() then
-        -- advance to the next phase
-        self:ForceNext()
-    end
+function Phaser:Reset()
+    local newPhaseID = GAME_PHASE_PREBUILD
+    local startTime = CurTime()
+    local endTime = startTime + GAME_PHASE_INFO[newPhaseID].time
+    Phaser:_update(newPhaseID, startTime, endTime, true) -- Update runs hooks, and syncs stuff
+    print("Phase reset to " .. GAME_PHASE_INFO[self.current_phase_id].name)
 end
 
 function Phaser:_update(newPhaseID, startTime, endTime, isReset)
@@ -128,27 +128,6 @@ function Phaser:_update(newPhaseID, startTime, endTime, isReset)
 
 end
 
-function Phaser:_prepareUpdateMessage(isReset)
-    net.Start("B2CTF_PhaseUpdate")
-    net.WriteUInt(self.current_phase_id-1, 2)  -- 1-4 -> 1-3 only requires 2 bits
-    net.WriteBool(isReset)
-    net.WriteDouble(self.start_time)
-    net.WriteDouble(self.end_time)
-end
-
-function Phaser:_sendPhaseToPlayer(ply)
-    if CLIENT then return end
-    self:_prepareUpdateMessage(false) -- probably not a reset
-    net.Send(ply)
-end
-
-
-function Phaser:_broadcastPhase(isReset)
-    if CLIENT then return end
-    self:_prepareUpdateMessage(isReset)
-    net.Broadcast()
-end
-
 function Phaser:_runHooks(oldPhaseID)
     local info = GAME_PHASE_INFO[self.current_phase_id]
     local oldPhaseInfo = nil
@@ -160,7 +139,9 @@ function Phaser:_runHooks(oldPhaseID)
     hook.Run("B2CTF_PhaseChanged", self.current_phase_id, info, oldPhaseID, oldPhaseInfo, self.start_time, self.end_time)
 end
 
-if CLIENT then -- setup listener for client only
+if CLIENT then
+
+    -- setup listener for client only
     net.Receive("B2CTF_PhaseUpdate", function( len, ply )
         if ( IsValid( ply ) and ply:IsPlayer() ) then return end -- disallow these messages from players
         local newPhaseID = net.ReadUInt(2) + 1
@@ -170,13 +151,40 @@ if CLIENT then -- setup listener for client only
         Phaser:_update(newPhaseID, startTime, endTime, isReset)
     end)
 
+    -- If a client detects a reload it should request a phase update
     hook.Add("OnReloaded", "B2CTF_PhaseRequestUpdate", function()
         net.Start("B2CTF_PhaseRequestUpdate")
         net.SendToServer()
     end )
 
 elseif SERVER then
-    timer.Create("B2CTF_PhaserSlowThink", 0.2, 0, function() Phaser:_think() end)
+
+    function Phaser:_think()
+        if self.end_time < CurTime() then
+            -- advance to the next phase
+            self:ForceNext()
+        end
+    end
+
+    function Phaser:_prepareUpdateMessage(isReset)
+        net.Start("B2CTF_PhaseUpdate")
+        net.WriteUInt(self.current_phase_id-1, 2)  -- 1-4 -> 1-3 only requires 2 bits
+        net.WriteBool(isReset)
+        net.WriteDouble(self.start_time)
+        net.WriteDouble(self.end_time)
+    end
+
+    function Phaser:_sendPhaseToPlayer(ply)
+        self:_prepareUpdateMessage(false) -- probably not a reset
+        net.Send(ply)
+    end
+
+    function Phaser:_broadcastPhase(isReset)
+        self:_prepareUpdateMessage(isReset)
+        net.Broadcast()
+    end
+
+    hook.Add("Think", "B2CTF_PhaserThink", function() Phaser:_think() end)
     hook.Add("PlayerInitialSpawn", "B2CTF_SendInitialPhase", function(ply) Phaser:_sendPhaseToPlayer(ply) end )
 
     net.Receive("B2CTF_PhaseRequestUpdate", function( len, ply )
@@ -186,15 +194,6 @@ elseif SERVER then
         end
     end )
 
-end
-
-
-function Phaser:Reset()
-    local newPhaseID = GAME_PHASE_PREBUILD
-    local startTime = CurTime()
-    local endTime = startTime + GAME_PHASE_INFO[newPhaseID].time
-    Phaser:_update(newPhaseID, startTime, endTime, true) -- Update runs hooks, and syncs stuff
-    print("Phase reset to " .. GAME_PHASE_INFO[self.current_phase_id].name)
 end
 
 Phaser:Reset() -- intialize phaser
