@@ -18,6 +18,7 @@ AddCSLuaFile("concommands/cl_init.lua")
 AddCSLuaFile("sh_sandbox.lua") -- Included by sandbox.lua and cl_sandbox.lua
 AddCSLuaFile("sh_map_config.lua")
 AddCSLuaFile("scoreboard/cl_init.lua")
+AddCSLuaFile("game_end/cl_init.lua")
 
 -- Run other server-side scripts
 include("shared.lua")
@@ -31,6 +32,7 @@ include("limits.lua")
 include("ready.lua")
 include("loadout.lua")
 include("scoreboard/init.lua")
+include("game_end/init.lua")
 
 function GM:ResetGame()
     -- Reset business logic
