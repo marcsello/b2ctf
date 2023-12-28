@@ -171,7 +171,6 @@ local playerRowTable = {
                 if flagID then
                     self.Flag:SetMaterial(B2CTF_MAP.teams[flagID]._iconMat)
                     self.Flag:Show()
-                    print(self.Flag:GetTall())
                 else
                     self.Flag:Hide()
                 end
