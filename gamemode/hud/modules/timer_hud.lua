@@ -94,25 +94,44 @@ function timerHUD:Draw()
 
     -- draw stuff
     draw.NoTexture()
+
+    -- draw base poly
     surface.SetDrawColor(0,0,0,128)
     surface.DrawPoly(self.basePoly)
+
+    -- draw fill poly
     surface.SetDrawColor(255,255,255,128)
     surface.DrawPoly(fillPoly)
-    surface.SetTextColor(255, 120, 0, 255)
 
-
+    -- draw text
+    -- first the phase name
     surface.SetFont("B2CTF_HUD_Timer_Phase")
     local textW, textH = surface.GetTextSize(phaseInfo.name)
-    surface.SetTextPos(ScrW() / 2 - textW / 2, 0)
+    local phaseNameTextX = ScrW() / 2 - textW / 2
+    surface.SetTextColor(0, 0, 0, 192)
+    surface.SetTextPos(phaseNameTextX + 1, 1)
     surface.DrawText(phaseInfo.name, false)
+
+    surface.SetTextColor(255, 120, 0)
+    surface.SetTextPos(phaseNameTextX, 0)
+    surface.DrawText(phaseInfo.name, false)
+
+    -- then the phase time
+    surface.SetFont("B2CTF_HUD_Timer_Time")
+    textW = surface.GetTextSize(timeLeftText)
+    local phaseTimerX = ScrW() / 2 - textW / 2
+    local phaseTimerY = textH
+
+    surface.SetTextColor(0, 0, 0, 192)
+    surface.SetTextPos(phaseTimerX + 1, phaseTimerY + 1)
+    surface.DrawText(timeLeftText, false)
 
     if blink then
         surface.SetTextColor(255, 0, 0, 255)
+    else
+        surface.SetTextColor(255, 120, 0)
     end
-
-    surface.SetFont("B2CTF_HUD_Timer_Time")
-    local textW = surface.GetTextSize(timeLeftText)
-    surface.SetTextPos(ScrW() / 2 - textW / 2, textH)
+    surface.SetTextPos(phaseTimerX, phaseTimerY)
     surface.DrawText(timeLeftText, false)
 
 end
