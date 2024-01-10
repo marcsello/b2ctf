@@ -294,6 +294,28 @@ hook.Add("CanPlayerSuicide", "B2CTF_SpectatorsShouldntSuicide", function( ply )
     if not (ply and IsValid(ply) and ply:TeamValid()) then return false end -- players without a valid team should not be able to suicide
 end )
 
+
+function GM:DoPlayerDeath( ply, attacker, dmginfo )
+    -- overriding this: https://github.com/Facepunch/garrysmod/blob/45ff9bdf7da8d661200dc20540f970212571aef8/garrysmod/gamemodes/base/gamemode/init.lua#L39
+    ply:CreateRagdoll()
+
+    if not Phaser:CurrentPhaseInfo().fightAllowed then return end -- if fight not allowed, then don't count score
+
+    ply:AddDeaths(1)
+
+    if attacker:IsValid() and attacker:IsPlayer() then
+
+        if attacker == ply then
+            attacker:AddFrags(-1)
+        else
+            attacker:AddFrags(1)
+        end
+
+    end
+
+end
+
+
 -- TODO: Put this somewhere else!
 -- Used by cl_flags
 if Config.UseBuiltinFlagRendering then
