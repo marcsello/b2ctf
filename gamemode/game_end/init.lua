@@ -16,5 +16,11 @@ function GM:B2CTF_NewRoundBegin()
         team.SetScore( i, 0 ) -- yes, this resets spectators, connecting etc. scores too
     end
 
-    print("A new round begin")
+    -- Reset player scores
+    for _, ply in ipairs(player.GetAll()) do
+        ply:SetFrags(0)
+        ply:SetDeaths(0)
+    end
+
+    print("A new round begin, scores were reset")
 end
