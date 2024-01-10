@@ -6,7 +6,7 @@ hook.Add("PlayerCheckLimit", "B2CTF_TeamLimits", function(ply, limitName, curren
     -- Count the total items in the team instead of individual player limit
     local teamSum = 0
     for _, p in ipairs(team.GetPlayers(teamID)) do
-        teamSum = teamSum + p:GetCount(limitName)
+        teamSum = teamSum + p:GetCount(limitName) -- GetCount comes from g_SBoxObjects
     end
 
     -- this should be the same as the default handler:

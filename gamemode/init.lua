@@ -83,6 +83,8 @@ local function reassignStuff(ply, teamID, isPlyLeftTheGame)
     local msg = nil
     if newPly and IsValid(newPly) then
         -- found someone to have stuff reassigned to
+        local plyUID = ply:UniqueID() -- the id if the player who left the team
+        local newPlyUID = newPly:UniqueID() -- the id of the player still in the team
 
         -- First, reassign the ownership tracked by B2CTF
         local anythingReassigned = false
@@ -102,12 +104,37 @@ local function reassignStuff(ply, teamID, isPlyLeftTheGame)
         -- Second, clean player's undo list if they changed teams, and their stuff got re-assigned
         -- If their stuff is not getting re-assigned then it is going to be deleted anyway 
         -- so we don't care about the undo list in that case
-        local plyUID = ply:UniqueID() -- the id if the player who left the team
         if not isPlyLeftTheGame then
             undo.GetTable()[plyUID] = {}
             -- There isn't really a nice way to do this, and I'm lazy to setup a network thingy for that
             -- And Gmod source uses this pretty often
             ply:SendLua("table.Empty(undo.GetTable()) undo.MakeUIDirty()")
+        end
+
+        -- Third, re-assign ownership tracked by sandbox, this is responsible for counting a player's items
+        -- We have to do this for various reasons, but most importantly, so that limits don't break
+        -- g_SBoxObjects is also a 3d array, indexed by player uid first then item type and then it's a list of entities
+        -- https://github.com/Facepunch/garrysmod/blob/3d44e02ab1335d8927e6e07a4e7c86a7e6c353ce/garrysmod/gamemodes/sandbox/gamemode/player_extension.lua#L34
+        local plySBoxObjects = g_SBoxObjects[plyUID]
+        if plySBoxObjects and not table.IsEmpty(plySBoxObjects) then
+
+            g_SBoxObjects[newPlyUID] = g_SBoxObjects[newPlyUID] or {}
+            for typ, entities in pairs(plySBoxObjects) do
+                if entities and #entities > 0 then
+
+                    -- copy over entities
+                    -- this possibly copies over invalid ents, but that's no problem
+                    g_SBoxObjects[newPlyUID][typ] = g_SBoxObjects[newPlyUID][typ] or {}
+                    table.Add(g_SBoxObjects[newPlyUID][typ], entities) -- this copies over stuff
+                    table.Empty(g_SBoxObjects[plyUID][typ]) -- remove ents from their original owner (so that the GetCount bellow will evaluate to zero)
+
+                    -- update networked vars by calling GetCount, this automagically updates the NWVars
+                    newPly:GetCount(typ)
+                    ply:GetCount(typ) -- should update it to zero
+
+                end
+            end
+            table.Empty(g_SBoxObjects[plyUID]) -- remove the remaining categories as well
         end
 
         -- Lastly, copy items from the players cleanup list to the new players cleanup list
@@ -116,7 +143,6 @@ local function reassignStuff(ply, teamID, isPlyLeftTheGame)
         local cleanupListToBeReassigned = cleanup.GetList()[plyUID] -- <- can be nil
         if cleanupListToBeReassigned then
             -- only do the re-assignment of the cleanup list if the player had anything to be re-assigned
-            local newPlyUID = newPly:UniqueID()
 
             if not cleanup.GetList()[newPlyUID] then -- create the undo list if it's not present already
                 cleanup.GetList()[newPlyUID] = {}
@@ -146,6 +172,8 @@ local function reassignStuff(ply, teamID, isPlyLeftTheGame)
                 anythingRemoved = true
             end
         end
+
+        table.Empty(g_SBoxObjects[ply:UniqueID()]) -- this is not strictly needed, as removed objects gets removed from here too, but it may speed up things a little
 
         if anythingRemoved then msg = ply:Nick() .. " was the last player in team " .. teamName .. ". Removed all their stuff!" end
     end
