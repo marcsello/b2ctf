@@ -1,0 +1,11 @@
+site_name: Build2CTF
+site_description: "A Garry's mod gamemode"
+site_author: "Marcsello"
+site_url: https://b2ctf.marcsello.com/docs
+repo_url: https://github.com/marcsello/b2ctf
+site_dir: "_docs_dist"
+markdown_extensions:
+  - toc:
+      permalink: true
+theme:
+  name: readthedocs

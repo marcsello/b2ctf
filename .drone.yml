@@ -9,6 +9,30 @@ steps:
       - pip3 install -r tests/config_validation/requirements.txt
       - python3 tests/config_validation/validate.py
 
+  - name: "build docs"
+    image: python:3.11
+    commands:
+      - "pip3 install mkdocs"
+      - "mkdocs build"
+      - "test -d _docs_dist/"
+
+  - name: "publish docs"
+    image: debian:12
+    environment:
+      WEBPLOY_USER:
+        from_secret: WEBPLOY_USER
+      WEBPLOY_PASSWORD:
+        from_secret: WEBPLOY_PASSWORD
+      WEBPLOY_SITE: "b2ctf.marcsello.com_docs"
+      WEBPLOY_URL:
+        from_secret: WEBPLOY_URL
+    commands:
+      - "apt update && apt install -y jq curl"
+      - "bash ci_publish_docs.sh"
+    when:
+      branch:
+        - master
+
   - name: telegram
     image: appleboy/drone-telegram
     settings:
